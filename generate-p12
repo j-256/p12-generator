@@ -1,0 +1,201 @@
+#!/bin/bash
+# Tested in GNU bash, version 3.2.57(1)-release (2007) (x86_64-apple-darwin23)
+
+##############################################################################################
+# Generates a .p12 client certificate for Salesforce B2C Commerce stg code upload MFA        #
+##############################################################################################
+# Usage:                                                                                     #
+#   generate-p12 [cert_bundle_directory]                                                     #
+# Run from the directory the cert bundle was unzipped to or provide that path as an argument #
+##############################################################################################
+
+_generate_p12() {
+    # Example hostname: "cert.staging.customer.realm.demandware.net"
+    # However, any BM hostname or as little as "customer.realm" or "customer-realm" may be provided
+
+    # Text formatting control characters for later use - by convention wrapped in {} when used below, for legibility
+    local red;     red="$(tput setaf 1)"
+    local teal;   teal="$(tput setaf 6)"
+    local default_color="$teal"
+    local bold;   bold="$(tput bold)" # start bolding text
+    local smul;   smul="$(tput smul)" # start underlining text
+    local rmul;   rmul="$(tput rmul)" # stop underlining text
+    local reset; reset="$(tput sgr0)" # reset all formatting to terminal default
+    # Note: There is no `tput unbold`. `tput bold` is $'\E[1m', which you would generally undo with
+    #  $'\E[0m' or $'\E[m', but those essentially match `tput sgr0`, clearing all formatting
+
+    # Unset inner functions before returning
+    trap 'unset -f _color _prompt _echo _bold _error _file_exists' RETURN
+    # Applies provided formatting (typically color) to output
+    _color() {
+        local color="$1" && shift
+        if [ -t 0 ]; then # input is not piped or redirected (_func hi)
+            printf "${color}%s\\n${reset}" "$@"
+        else # input is piped or redirected (cat file | _func, _func <file)
+            printf "${color}%s\\n${reset}" "$(cat)"
+        fi
+    }
+    # Prints colored text without a trailing newline (for inline prompts)
+    _prompt() {
+        printf "${default_color}%s${reset}" "$*"
+    }
+    # Prints colored text to stdout
+    _echo() {
+        _color "$default_color" "$@"
+    }
+    # Prints bold colored text to stdout
+    _bold() {
+        _color "$bold$default_color" "$@"
+    }
+    # Prints red text to stderr, with [ERR] preceding each line
+    _error() {
+        if [ -t 0 ]; then
+            local arg
+            for arg in "$@"; do
+                _color "$red" "[ERR] $arg" >&2
+            done
+        else
+            _color "$red" "[ERR] $(cat)" >&2
+        fi
+    }
+    # Checks if file(s) exist and prints an error message if not
+    _file_exists() {
+        local any_missing=0
+        local file
+        for file in "$@"; do
+            if [ ! -f "$file" ]; then
+                _error "File not found: $file"
+                any_missing=1
+            fi
+        done
+        return $any_missing
+    }
+
+    # TODO: We should just include the path in the filenames rather than changing to the directory and back
+    local wd="${1:-"$PWD"}" # working directory
+    # Save old dir to `cd` back to
+    local old_dir="$PWD"
+    # `cd` to working directory (or current if not provided, which will be a no-op)
+    if ! cd "$wd"; then
+        _error "Failed to change to specified directory"
+        return 1
+    fi
+
+    local hostname
+    _prompt "Hostname (cert.staging.***): "
+    read -r hostname
+    echo #newline
+    # Make sure we end up with a good hostname no matter what form it's provided in
+    # Any PIG instance's BM hostname will end up in the "cert.staging" form, or even providing as little as "customer-realm"
+    hostname="$(printf %s "$hostname" | \
+        sed '# Convert underscores and hyphens to periods
+             s/_/./g; s/-/./g;
+             # Remove any existing instance type identifier
+             s/^production\.//; s/^development\.//; s/^staging\.//; s/^cert\.staging\.//;
+             # Prepend with "cert.staging."
+             s/^/cert.staging./;
+             # Remove trailing ".demandware.net" if it exists
+             s/\.demandware\.net$//;
+             # Append ".demandware.net"
+             s/$/.demandware.net/'
+    )"
+
+    # Assemble cert bundle filenames and verify that they all exist before proceeding
+    local ca_cert_filename="${hostname}_01.crt"
+    local ca_key_filename="${hostname}_01.key"
+    local ca_pass_filename="${hostname}_01.txt"
+    local ca_serial_filename="${hostname}.srl" # CA serial is the only one which doesn't end in _01
+    # Verify necessary files exist, printing any which are missing
+    if ! _file_exists "$ca_cert_filename" "$ca_key_filename" "$ca_pass_filename" "$ca_serial_filename"; then
+        _error "${bold}Necessary file(s) missing, aborting p12 generation"
+        return 1
+    fi
+
+    # Define output file names
+    local user="$USER"
+    local req_filename="$user-$hostname.req"
+    local key_filename="$user-$hostname.key"
+    local pem_filename="$user-$hostname.pem"
+    local p12_filename="$user-$hostname.p12"
+
+    # Print the filenames which will be used
+    _echo <<EOF
+${smul}Using these filenames:${rmul}
+  $ca_cert_filename
+  $ca_key_filename
+  $ca_pass_filename
+  $ca_serial_filename
+  $req_filename
+  $key_filename
+  $pem_filename
+  $p12_filename
+EOF
+    echo #newline
+
+    # Prompt for desired cert expiration, in years
+    while :; do # keep prompting until a nonzero integer is entered
+        _prompt "Years until expiration: "
+        read -r years
+        if [ "$years" -gt 0 ] 2>/dev/null; then
+            break
+        fi
+        echo "Please enter a valid integer." # terminal default color
+    done
+    local days=$((years*365))
+    echo #newline
+
+    ### Step 1 of 3: Generate a CSR and private key
+    # -nodes (no DES) means do not encrypt the generated private key
+    if ! openssl req -new -sha256 -newkey rsa:2048 -nodes -out "$req_filename" -keyout "$key_filename"; then
+        _error "${bold}\`openssl req\` (step 1/3) failed - .req and .key files not generated"
+        return 1
+    fi
+    echo #newline
+    _bold "Created CSR:"
+    _echo "$req_filename"
+    _bold "Created private key:"
+    _echo "$key_filename"
+    echo #newline
+
+    ### Step 2 of 3: Create a certificate from the CSR using the CA files and password
+    # Read CA private key password from text file
+    local pass
+    if ! pass="$(cat "$ca_pass_filename")"; then
+        _error "Failed to read CA password from $ca_pass_filename"
+        return 1
+    fi
+    # Create X.509 certificate to be bundled with the user's private key in the PKCS#12 keystore
+    if ! openssl x509 -req -in "$req_filename" -out "$pem_filename" -days "$days" -CA "$ca_cert_filename" -CAkey "$ca_key_filename" -passin "pass:$pass" -CAserial "$ca_serial_filename"; then
+        _error "${bold}\`openssl x509\` (step 2/3) failed - .pem file not generated"
+        return 1
+    fi
+    echo #newline
+    _bold "Created X.509 intermediate certificate:"
+    _echo "$pem_filename"
+    echo #newline
+
+    ### Step 3 of 3: Bundle the private key (Step 1), the CA-signed certificate (Step 2), and CA certificate into a .p12 client certificate
+    # Below lines are printed right before the "Enter Export Password" prompt from the pkcs12 export command
+    _echo "${bold}NOTE:${reset} ${default_color}This encrypts the client certificate itself, so that it cannot be used without this password."
+    _echo "${smul}secure prompt: no text will appear as you type${rmul}"
+    if ! openssl pkcs12 -export -in "$pem_filename" -inkey "$key_filename" -certfile "$ca_cert_filename" -name "$user-$hostname" -out "$p12_filename"; then
+        _error "${bold}\`openssl pkcs12\` (step 3/3) failed - .p12 file not generated"
+        return 1
+    fi
+    echo #newline
+    _bold "Created PKCS12 client certificate:" 
+    _echo "$p12_filename"
+    echo #newline
+
+    ### DONE
+    _bold "Finished successfully. Full path to p12:"
+    _echo "$PWD/$p12_filename"
+
+    # Return to original directory
+    if ! cd "$old_dir"; then
+        echo "[ERR] Failed to revert to original directory" >&2
+        return 1
+    fi
+}
+
+_generate_p12 "$@"

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate .p12 Certificate</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Salesforce B2C .p12 Generator</h1>
+    <form id="certForm">
+      <label for="hostname">Hostname (cert.staging.***):</label>
+      <input type="text" id="hostname" name="hostname" required>
+      <label for="years">Years until expiration:</label>
+      <input type="number" id="years" name="years" min="1" required>
+      <label for="files">Upload Certificate Files (zip or individual):</label>
+      <input type="file" id="files" name="files" multiple required>
+      <button type="submit">Generate .p12</button>
+    </form>
+    <div id="output"></div>
+    <pre id="console-log"></pre>
+  </div>
+  <script src="static/bundle.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
