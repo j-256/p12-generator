@@ -15,7 +15,10 @@ body {
 h1 {
   color: #0a5c7d;
   font-size: 1.5em;
-  margin-bottom: 1.2em;
+  margin-bottom: 0.1em;
+}
+p.description {
+    margin-top: 0;
 }
 label {
   display: block;
@@ -25,7 +28,9 @@ label {
   font-weight: 600;
 }
 input[type="text"],
+input[type="email"],
 input[type="number"],
+input[type="password"],
 input[type="file"] {
   width: 100%;
   padding: 0.5em;
@@ -66,4 +71,10 @@ button:hover {
   overflow-y: auto;
   white-space: pre-wrap;
   box-shadow: 0 1px 4px #0002;
+}
+.tooltip {
+  color: black;
+  font-size: smaller;
+  vertical-align: super;
+  cursor: help;
 }

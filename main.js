@@ -1,6 +1,4 @@
 // main.js
-// This file will handle UI logic and certificate generation
-// Placeholder for now. Will add OpenSSL/WASM logic next.
 document.getElementById('certForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const output = document.getElementById('output');
@@ -14,6 +12,9 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             return;
         }
 
+        console.log(`Hostname: ${hostname}`);
+        console.log(`Years: ${years}`);
+
         // Helper: normalize hostname as in the bash script
         function normalizeHostname(h) {
             return h.replace(/[_-]/g, '.')
@@ -23,19 +24,23 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
                 .replace(/$/, '.demandware.net');
         }
         const normHost = normalizeHostname(hostname);
+        console.log(`Normalized Hostname: ${normHost}`);
 
         // Required filenames
-        const caCert = `${normHost}_01.crt`;
-        const caKey = `${normHost}_01.key`;
-        const caPass = `${normHost}_01.txt`;
-        const caSerial = `${normHost}.srl`;
-        const requiredFiles = [caCert, caKey, caPass, caSerial];
+        const caCertFilename = `${normHost}_01.crt`;
+        const caKeyFilename = `${normHost}_01.key`;
+        const caPassFilename = `${normHost}_01.txt`;
+        const caSerialFilename = `${normHost}.srl`;
+        const requiredFiles = [caCertFilename, caKeyFilename, caPassFilename, caSerialFilename];
+        console.log(`Required Files: ${requiredFiles.join(', ')}`);
 
         // Build fileMap from individual files
         let fileMap = {};
         for (let file of filesInput.files) {
             fileMap[file.name] = file;
         }
+        console.log(`Uploaded Files: ${Object.keys(fileMap).join(', ')}`);
+
         // If a zip is present, extract its files and add to fileMap
         const zipFile = Array.from(filesInput.files).find(f => f.name.endsWith('.zip'));
         if (zipFile) {
@@ -66,21 +71,19 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         const missing = requiredFiles.filter(f => !(f in fileMap));
         if (missing.length) {
             output.innerHTML = `<span style='color:red'>Missing required file(s):<br>${missing.join('<br>')}</span>`;
+            console.log(`Missing Files: ${missing.join(', ')}`);
             return;
         }
 
         output.innerHTML = `<b>All required files found.</b><br>Generating .p12 (in-browser)...`;
+        console.log('All required files found. Starting PKI logic...');
 
         // --- PKI logic start ---
         try {
-            function logToConsole(msg) {
+            function logToPage(msg) {
                 const log = document.getElementById('console-log');
                 log.textContent += (msg + '\n');
                 log.scrollTop = log.scrollHeight;
-            }
-            // PEM to forge object utility
-            function pemToCert(pem) {
-                return forge.pki.certificateFromPem(pem);
             }
             function pemToPrivateKey(pem, password) {
                 if (/Proc-Type: 4,ENCRYPTED/.test(pem)) {
@@ -92,41 +95,63 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             // 1. Read CA cert, key, password, serial
             const readAsText = file => file.text();
             const [caCertPem, caKeyPem, caPassText, caSerialText] = await Promise.all([
-                readAsText(fileMap[caCert]),
-                readAsText(fileMap[caKey]),
-                readAsText(fileMap[caPass]),
-                readAsText(fileMap[caSerial])
+                readAsText(fileMap[caCertFilename]),
+                readAsText(fileMap[caKeyFilename]),
+                readAsText(fileMap[caPassFilename]),
+                readAsText(fileMap[caSerialFilename])
             ]);
 
-            // 2. Prompt for export password
-            let exportPassword = prompt("Enter export password for .p12 (will be required to use the certificate):");
-            if (!exportPassword) {
-                output.innerHTML = '<span style="color:red">Export password is required.</span>';
-                return;
-            }
+            console.debug('CA Cert PEM:', caCertPem);
+            console.debug('CA Key PEM:', caKeyPem);
+            console.debug('CA Password:', caPassText.trim());
+            console.debug('CA Serial:', caSerialText.trim());
+
+            // 2. Get export password
+            const exportPassword = document.getElementById('exportPassword').value.trim();
+            console.debug(`Export Password: ${exportPassword}`);
 
             // 3. Generate user keypair and CSR
-            logToConsole('Generating keypair and CSR...');
+            logToPage('Generating keypair and CSR...');
             const userKeyPair = forge.pki.rsa.generateKeyPair(2048);
-            // Subject info
-            const userCN = hostname;
+            console.debug('Generated User Key Pair:', userKeyPair);
+
+            // CSR subject info
+            const userCN = normHost;
+            const country = document.getElementById('country').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const locality = document.getElementById('locality').value.trim();
+            const organization = document.getElementById('organization').value.trim();
+            const orgUnit = document.getElementById('orgUnit').value.trim();
+            const email = document.getElementById('email').value.trim();
+
             const csr = forge.pki.createCertificationRequest();
             csr.publicKey = userKeyPair.publicKey;
-            csr.setSubject([{ name: 'commonName', value: userCN }]);
+            csr.setSubject([
+                { name: 'countryName', value: country },
+                { name: 'stateOrProvinceName', value: state },
+                { name: 'localityName', value: locality },
+                { name: 'organizationName', value: organization },
+                { name: 'organizationalUnitName', value: orgUnit },
+                { name: 'commonName', value: userCN },
+                { name: 'emailAddress', value: email }
+            ]);
             csr.sign(userKeyPair.privateKey, forge.md.sha256.create());
+            console.log('Generated CSR:', csr);
 
             // 4. Parse CA cert and key
-            logToConsole('Parsing CA cert and key...');
-            const caCertObj = pemToCert(caCertPem);
-            let caKeyObj = pemToPrivateKey(caKeyPem, caPassText.trim());
+            logToPage('Parsing CA cert and key...');
+            const caCertObj = forge.pki.certificateFromPem(caCertPem);
+            const caKeyObj = pemToPrivateKey(caKeyPem, caPassText.trim());
             if (!caKeyObj) {
-                logToConsole('Failed to parse/import CA private key.');
+                logToPage('Failed to parse/import CA private key.');
                 output.innerHTML = `<span style='color:red'>Failed to parse/import CA private key.</span>`;
                 throw new Error('Failed to parse/import CA private key.');
             }
+            console.log('Parsed CA Cert Object:', caCertObj);
+            console.log('Parsed CA Key Object:', caKeyObj);
 
             // 5. Sign CSR to create user cert
-            logToConsole('Signing certificate...');
+            logToPage('Signing certificate...');
             const userCert = forge.pki.createCertificate();
             userCert.serialNumber = (Date.now()).toString();
             userCert.validity.notBefore = new Date();
@@ -138,14 +163,25 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
                 { name: 'basicConstraints', cA: false }
             ]);
             userCert.sign(caKeyObj, forge.md.sha256.create());
+            console.log('Signed User Certificate:', userCert);
 
             // 6. Export PKCS#12
-            logToConsole('Exporting PKCS#12 (.p12)...');
-            const p12Asn1 = forge.pkcs12.toPkcs12Asn1(
+            logToPage('Exporting PKCS#12 (.p12)...');
+            // We use our own version of forge.pkcs12.toPkcs12Asn1 because Forge hardcodes sha1 for PKCS#12 MAC
+            // https://github.com/digitalbazaar/forge/blob/2bb97afb5058285ef09bcf1d04d6bd6b87cffd58/lib/pkcs12.js#L796
+            const p12Asn1 = toPkcs12Asn1New(
                 userKeyPair.privateKey,
                 [userCert, caCertObj],
                 exportPassword,
-                { generateLocalKeyId: true, friendlyName: userCN }
+                {
+                    generateLocalKeyId: true,
+                    friendlyName: userCN,
+                    algorithm: 'aes256',
+                    useMac: true,
+                    macAlgorithm: 'sha256',
+                    saltSize: 8,
+                    count: 2048
+                }
             );
             const p12Der = forge.asn1.toDer(p12Asn1).getBytes();
             const blob = new Blob([new Uint8Array([...p12Der].map(c => c.charCodeAt(0)))], { type: 'application/x-pkcs12' });
@@ -155,9 +191,10 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             a.textContent = 'Download .p12';
             output.innerHTML += '<br>';
             output.appendChild(a);
-            logToConsole('Done.');
+            logToPage('Done.');
+            console.log('PKCS#12 Export Complete.');
         } catch (err) {
-            logToConsole('Error during certificate generation: ' + (err.message || JSON.stringify(err)));
+            logToPage('Error during certificate generation: ' + (err.message || JSON.stringify(err)));
             output.innerHTML = `<span style='color:red'>Error during certificate generation: ${err.message || JSON.stringify(err)}</span>`;
             console.error('Error during certificate generation:', err);
             throw err;
@@ -166,6 +203,409 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         output.innerHTML = `<span style='color:red'>Unexpected error: ${err.message || JSON.stringify(err)}</span>`;
         throw err;
     }
+    /**
+     * A version of forge.pkcs12.toPkcs12Asn1 that allows specifying the MAC algorithm.
+     * Also encrypts the certificate chain, not just the private key.
+     *
+     * @param key the private key.
+     * @param cert the certificate (may be an array of certificates in order
+     *          to specify a certificate chain).
+     * @param password the password to use, null for none.
+     * @param options:
+     *          algorithm the encryption algorithm to use
+     *            ('aes128', 'aes192', 'aes256', '3des'), defaults to 'aes128'.
+     *          macAlgorithm the MAC algorithm to use
+     *            ('sha1', 'sha256', 'sha384', 'sha512'), defaults to 'sha1'.
+     *          count the iteration count to use.
+     *          saltSize the salt size to use.
+     *          useMac true to include a MAC, false not to, defaults to true.
+     *          localKeyId the local key ID to use, in hex.
+     *          friendlyName the friendly name to use.
+     *          generateLocalKeyId true to generate a random local key ID,
+     *            false not to, defaults to true.
+     *
+     * @return the PKCS#12 PFX ASN.1 object.
+     */
+    function toPkcs12Asn1New(key, cert, password, options) {
+        const asn1 = forge.asn1;
+        const pki = forge.pki;
+        const p12 = forge.pkcs12;
+        // set default options
+        options = options || {};
+        options.saltSize = options.saltSize || 8;
+        options.count = options.count || 2048;
+        options.algorithm = options.algorithm || options.encAlgorithm || 'aes128';
+        if (!('useMac' in options)) {
+            options.useMac = true;
+        }
+        if (!('localKeyId' in options)) {
+            options.localKeyId = null;
+        }
+        if (!('generateLocalKeyId' in options)) {
+            options.generateLocalKeyId = true;
+        }
+
+        var localKeyId = options.localKeyId;
+        var bagAttrs;
+        if (localKeyId !== null) {
+            localKeyId = forge.util.hexToBytes(localKeyId);
+        } else if (options.generateLocalKeyId) {
+            // use SHA-256 of paired cert, if available
+            if (cert) {
+                var pairedCert = forge.util.isArray(cert) ? cert[0] : cert;
+                if (typeof pairedCert === 'string') {
+                    pairedCert = pki.certificateFromPem(pairedCert);
+                }
+                var sha256 = forge.md.sha256.create();
+                sha256.update(asn1.toDer(pki.certificateToAsn1(pairedCert)).getBytes());
+                localKeyId = sha256.digest().getBytes();
+            } else {
+                // FIXME: consider using SHA-256 of public key (which can be generated
+                // from private key components), see: cert.generateSubjectKeyIdentifier
+                // generate random bytes
+                localKeyId = forge.random.getBytes(20);
+            }
+        }
+
+        var attrs = [];
+        if (localKeyId !== null) {
+            attrs.push(
+                // localKeyID
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // attrId
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        asn1.oidToDer(pki.oids.localKeyId).getBytes()),
+                    // attrValues
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SET, true, [
+                        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
+                            localKeyId)
+                    ])
+                ]));
+        }
+        if ('friendlyName' in options) {
+            attrs.push(
+                // friendlyName
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // attrId
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        asn1.oidToDer(pki.oids.friendlyName).getBytes()),
+                    // attrValues
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SET, true, [
+                        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.BMPSTRING, false,
+                            options.friendlyName)
+                    ])
+                ]));
+        }
+
+        if (attrs.length > 0) {
+            bagAttrs = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SET, true, attrs);
+        }
+
+        // collect contents for AuthenticatedSafe
+        var contents = [];
+
+        // create safe bag(s) for certificate chain
+        var chain = [];
+        if (cert !== null) {
+            if (forge.util.isArray(cert)) {
+                chain = cert;
+            } else {
+                chain = [cert];
+            }
+        }
+
+        var certSafeBags = [];
+        for (var i = 0; i < chain.length; ++i) {
+            // convert cert from PEM as necessary
+            cert = chain[i];
+            if (typeof cert === 'string') {
+                cert = pki.certificateFromPem(cert);
+            }
+
+            // SafeBag
+            var certBagAttrs = (i === 0) ? bagAttrs : undefined;
+            var certAsn1 = pki.certificateToAsn1(cert);
+            var certSafeBag =
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // bagId
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        asn1.oidToDer(pki.oids.certBag).getBytes()),
+                    // bagValue
+                    asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                        // CertBag
+                        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                            // certId
+                            asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                                asn1.oidToDer(pki.oids.x509Certificate).getBytes()),
+                            // certValue (x509Certificate)
+                            asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                                asn1.create(
+                                    asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
+                                    asn1.toDer(certAsn1).getBytes())
+                            ])])]),
+                    // bagAttributes (OPTIONAL)
+                    certBagAttrs
+                ]);
+            certSafeBags.push(certSafeBag);
+        }
+
+        if (certSafeBags.length > 0) {
+            // SafeContents
+            var certSafeContents = asn1.create(
+                asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, certSafeBags);
+
+            // Used to encrypt the cert chain. By default, only the private key is encrypted.
+            // It's unusual to encrypt more than the private key, but that is what the openssl
+            // commands do.
+            function encryptSafeContentsAsEncryptedData(safeContentsBytes, password, options) {
+                options = options || {};
+                const saltSize = options.saltSize || 8;
+                const count = options.count || 2048;
+                const prf = (options.macAlgorithm || 'sha256').toLowerCase();
+                const algorithm = (options.algorithm || 'aes256').toLowerCase();
+
+                const prfOid = {
+                    sha1: forge.pki.oids.hmacWithSHA1,
+                    sha256: forge.pki.oids.hmacWithSHA256,
+                    sha384: forge.pki.oids.hmacWithSHA384,
+                    sha512: forge.pki.oids.hmacWithSHA512
+                }[prf];
+                if (!prfOid) throw new Error(`Unsupported PRF algorithm: ${prf}`);
+
+                const keySize = {
+                    aes128: 16,
+                    aes192: 24,
+                    aes256: 32
+                }[algorithm];
+                if (!keySize) throw new Error(`Unsupported algorithm: ${algorithm}`);
+
+                const cipherOid = {
+                    aes128: forge.pki.oids['aes128-CBC'],
+                    aes192: forge.pki.oids['aes192-CBC'],
+                    aes256: forge.pki.oids['aes256-CBC']
+                }[algorithm];
+
+                const salt = forge.random.getBytes(saltSize);
+                const iv = forge.random.getBytes(16);
+                const key = forge.pkcs5.pbkdf2(password, salt, count, keySize, forge.md[prf].create());
+
+                const cipher = forge.cipher.createCipher(`AES-CBC`, key);
+                cipher.start({ iv });
+                cipher.update(forge.util.createBuffer(safeContentsBytes));
+                cipher.finish();
+                const encryptedContent = cipher.output.getBytes();
+
+                // Build PBKDF2-params ASN.1
+                const pbkdf2Params = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OCTETSTRING, false, salt),
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.INTEGER, false,
+                        forge.util.hexToBytes(count.toString(16))),
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [ // prf
+                        forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                            forge.asn1.oidToDer(prfOid).getBytes()),
+                        forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.NULL, false, '')
+                    ])
+                ]);
+
+                // PBES2-params
+                const pbes2Params = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    // keyDerivationFunc
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                        forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                            forge.asn1.oidToDer(forge.pki.oids['pkcs5PBKDF2']).getBytes()),
+                        pbkdf2Params
+                    ]),
+                    // encryptionScheme
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                        forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                            forge.asn1.oidToDer(cipherOid).getBytes()),
+                        forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OCTETSTRING, false, iv)
+                    ])
+                ]);
+
+                // contentEncryptionAlgorithm = PBES2 + params
+                const contentEncryptionAlgorithm = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                        forge.asn1.oidToDer(forge.pki.oids['pkcs5PBES2']).getBytes()),
+                    pbes2Params
+                ]);
+
+                // EncryptedContentInfo
+                const encryptedContentInfo = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    // contentType: data
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                        forge.asn1.oidToDer(forge.pki.oids.data).getBytes()),
+                    contentEncryptionAlgorithm,
+                    // encryptedContent [0]
+                    forge.asn1.create(forge.asn1.Class.CONTEXT_SPECIFIC, 0, false, encryptedContent)
+                ]);
+
+                // EncryptedData
+                const encryptedData = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.INTEGER, false,
+                        forge.util.hexToBytes('00')), // version
+                    encryptedContentInfo
+                ]);
+
+                // ContentInfo (EncryptedData wrapper)
+                return forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SEQUENCE, true, [
+                    forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.OID, false,
+                        forge.asn1.oidToDer(forge.pki.oids.encryptedData).getBytes()),
+                    forge.asn1.create(forge.asn1.Class.CONTEXT_SPECIFIC, 0, true, [encryptedData])
+                ]);
+            }
+
+            const certSafeContentsBytes = forge.asn1.toDer(certSafeContents).getBytes();
+            const certCI = encryptSafeContentsAsEncryptedData(certSafeContentsBytes, password, options);
+            contents.push(certCI);
+        }
+
+        // create safe contents for private key
+        var keyBag = null;
+        if (key !== null) {
+            // SafeBag
+            var pkAsn1 = pki.wrapRsaPrivateKey(pki.privateKeyToAsn1(key));
+            if (password === null) {
+                // no encryption
+                keyBag = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // bagId
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        asn1.oidToDer(pki.oids.keyBag).getBytes()),
+                    // bagValue
+                    asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                        // PrivateKeyInfo
+                        pkAsn1
+                    ]),
+                    // bagAttributes (OPTIONAL)
+                    bagAttrs
+                ]);
+            } else {
+                // encrypted PrivateKeyInfo
+                keyBag = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // bagId
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        asn1.oidToDer(pki.oids.pkcs8ShroudedKeyBag).getBytes()),
+                    // bagValue
+                    asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                        // EncryptedPrivateKeyInfo
+                        pki.encryptPrivateKeyInfo(pkAsn1, password, options)
+                    ]),
+                    // bagAttributes (OPTIONAL)
+                    bagAttrs
+                ]);
+            }
+
+            // SafeContents
+            var keySafeContents =
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [keyBag]);
+
+            // ContentInfo
+            var keyCI =
+                // PKCS#7 ContentInfo
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // contentType
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                        // OID for the content type is 'data'
+                        asn1.oidToDer(pki.oids.data).getBytes()),
+                    // content
+                    asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                        asn1.create(
+                            asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
+                            asn1.toDer(keySafeContents).getBytes())
+                    ])
+                ]);
+            contents.push(keyCI);
+        }
+
+        // create AuthenticatedSafe by stringing together the contents
+        var safe = asn1.create(
+            asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, contents);
+
+        var macData;
+        if (options.useMac) {
+            // MacData
+            const digestAlgorithm = (options.macAlgorithm || 'sha1').toLowerCase();
+            let md, oid, keyLen;
+
+            switch (digestAlgorithm) {
+                case 'sha256':
+                    md = forge.md.sha256.create();
+                    oid = pki.oids.sha256;
+                    keyLen = 32;
+                    break;
+                case 'sha384':
+                    md = forge.md.sha384.create();
+                    oid = pki.oids.sha384;
+                    keyLen = 48;
+                    break;
+                case 'sha512':
+                    md = forge.md.sha512.create();
+                    oid = pki.oids.sha512;
+                    keyLen = 64;
+                    break;
+                case 'sha1':
+                default:
+                    md = forge.md.sha1.create();
+                    oid = pki.oids.sha1;
+                    keyLen = 20;
+                    break;
+            }
+
+            const macSaltBytes = forge.random.getBytes(options.saltSize);
+            const macSalt = new forge.util.ByteBuffer(macSaltBytes);
+            const count = options.count;
+            const key = p12.generateKey(password, macSalt, 3, count, keyLen, md);
+            const mac = forge.hmac.create();
+            mac.start(md, key);
+            mac.update(asn1.toDer(safe).getBytes());
+            const macValue = mac.getMac();
+            macData = asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                // mac DigestInfo
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                    // digestAlgorithm
+                    asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                        // algorithm
+                        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                            asn1.oidToDer(oid).getBytes()),
+                        // parameters = Null
+                        asn1.create(asn1.Class.UNIVERSAL, asn1.Type.NULL, false, '')
+                    ]),
+                    // digest
+                    asn1.create(
+                        asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING,
+                        false, macValue.getBytes())
+                ]),
+                // macSalt OCTET STRING
+                asn1.create(
+                    asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false, macSaltBytes),
+                // iterations INTEGER (XXX: Only support count < 65536)
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.INTEGER, false,
+                    asn1.integerToDer(count).getBytes()
+                )
+            ]);
+        }
+
+        // PFX
+        return asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+            // version (3)
+            asn1.create(asn1.Class.UNIVERSAL, asn1.Type.INTEGER, false,
+                asn1.integerToDer(3).getBytes()),
+            // PKCS#7 ContentInfo
+            asn1.create(asn1.Class.UNIVERSAL, asn1.Type.SEQUENCE, true, [
+                // contentType
+                asn1.create(asn1.Class.UNIVERSAL, asn1.Type.OID, false,
+                    // OID for the content type is 'data'
+                    asn1.oidToDer(pki.oids.data).getBytes()),
+                // content
+                asn1.create(asn1.Class.CONTEXT_SPECIFIC, 0, true, [
+                    asn1.create(
+                        asn1.Class.UNIVERSAL, asn1.Type.OCTETSTRING, false,
+                        asn1.toDer(safe).getBytes())
+                ])
+            ]),
+            macData
+        ]);
+    };
 });
 
 document.getElementById('files').addEventListener('change', async function() {

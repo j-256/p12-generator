@@ -1,27 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generate .p12 Certificate</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate .p12 Certificate</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Salesforce B2C .p12 Generator</h1>
-    <form id="certForm">
-      <label for="hostname">Hostname (cert.staging.***):</label>
-      <input type="text" id="hostname" name="hostname" required>
-      <label for="years">Years until expiration:</label>
-      <input type="number" id="years" name="years" min="1" required>
-      <label for="files">Upload Certificate Files (zip or individual):</label>
-      <input type="file" id="files" name="files" multiple required>
-      <button type="submit">Generate .p12</button>
-    </form>
-    <div id="output"></div>
-    <pre id="console-log"></pre>
-  </div>
-  <script src="static/bundle.js"></script>
-  <script src="main.js"></script>
+    <div class="container">
+        <h1 class="title">Salesforce B2C .p12 Generator</h1>
+        <p class="description">All fields are required.</p>
+        <form id="certForm">
+            <label for="hostname">Hostname</label>
+            <input type="text" id="hostname" name="hostname" required placeholder="cert.staging.customer.realm.demandware.net">
+
+            <label for="years">Years until expiration</label>
+            <input type="number" id="years" name="years" min="1" required placeholder="10">
+
+            <label for="files">Upload Certificate Files (zip or individual)</label>
+            <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
+
+            <label for="country">Country Name (2-letter code)</label>
+            <input type="text" id="country" name="country" maxlength="2" required placeholder="US">
+
+            <label for="state">State or Province Name</label>
+            <input type="text" id="state" name="state" required placeholder="San Francisco">
+
+            <label for="locality">Locality Name (City)</label>
+            <input type="text" id="locality" name="locality" required placeholder="California">
+
+            <label for="organization">Organization Name</label>
+            <input type="text" id="organization" name="organization" required placeholder="Salesforce">
+
+            <label for="orgUnit">Organizational Unit Name</label>
+            <input type="text" id="orgUnit" name="orgUnit" required placeholder="Support">
+
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="user@company.com">
+
+            <label for="exportPassword">Export Password<span class="tooltip" title="This password will be required to use the resulting .p12 certificate later.">?</span></label>
+            <input type="password" id="exportPassword" name="exportPassword" required placeholder="1234">
+
+            <button type="submit">Generate .p12</button>
+
+            <button type="button" id="debugFill">Fill Debug Values</button>
+            <script>
+                document.getElementById('debugFill').addEventListener('click', function() {
+                    document.getElementById('hostname').value = 'staging.support02.dw.demandware.net';
+                    document.getElementById('years').value = '1';
+                    document.getElementById('country').value = 'US';
+                    document.getElementById('state').value = 'Illinois';
+                    document.getElementById('locality').value = 'Chicago';
+                    document.getElementById('organization').value = 'Salesforce';
+                    document.getElementById('orgUnit').value = 'Support';
+                    document.getElementById('email').value = 'james.klein@salesforce.com';
+                    document.getElementById('exportPassword').value = '1234';
+                });
+            </script>
+        </form>
+        <div id="output"></div>
+        <pre id="console-log"></pre>
+    </div>
+    <script src="/static/bundle.js"></script>
+    <script src="/main.js"></script>
 </body>
 </html>
