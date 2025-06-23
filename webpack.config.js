@@ -6,5 +6,13 @@ module.exports = {
     path: path.resolve(__dirname, 'static'),
     filename: 'bundle.js',
   },
-  mode: 'production'
+  mode: 'development',
+  devServer: {
+    static: {
+      directory: __dirname,
+    },
+    watchFiles: ['main.js'], // Watch main.js for changes and reload
+    hot: true,
+    port: 3000
+  },
 };
