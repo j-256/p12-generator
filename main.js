@@ -12,9 +12,6 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             return;
         }
 
-        console.log(`Hostname: ${hostname}`);
-        console.log(`Years: ${years}`);
-
         // Helper: normalize hostname as in the bash script
         function normalizeHostname(h) {
             return h.replace(/[_-]/g, '.')
@@ -32,28 +29,26 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         const caPassFilename = `${normHost}_01.txt`;
         const caSerialFilename = `${normHost}.srl`;
         const requiredFiles = [caCertFilename, caKeyFilename, caPassFilename, caSerialFilename];
-        console.log(`Required Files: ${requiredFiles.join(', ')}`);
 
         // Build fileMap from individual files
         let fileMap = {};
         for (let file of filesInput.files) {
             fileMap[file.name] = file;
         }
-        console.log(`Uploaded Files: ${Object.keys(fileMap).join(', ')}`);
 
         // If a zip is present, extract its files and add to fileMap
         const zipFile = Array.from(filesInput.files).find(f => f.name.endsWith('.zip'));
         if (zipFile) {
             output.textContent = 'Extracting zip...';
-            let buf;
+            let buffer;
             try {
-                buf = await zipFile.arrayBuffer();
+                buffer = await zipFile.arrayBuffer();
             } catch (err) {
                 output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
                 throw err;
             }
             await new Promise((resolve, reject) => {
-                fflate.unzip(new Uint8Array(buf), (err, files) => {
+                fflate.unzip(new Uint8Array(buffer), (err, files) => {
                     if (err) {
                         output.innerHTML = `<span style='color:red'>Error extracting zip: ${err.message || JSON.stringify(err)}</span>`;
                         reject(err);
@@ -80,11 +75,6 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
 
         // --- PKI logic start ---
         try {
-            function logToPage(msg) {
-                const log = document.getElementById('console-log');
-                log.textContent += (msg + '\n');
-                log.scrollTop = log.scrollHeight;
-            }
             function pemToPrivateKey(pem, password) {
                 if (/Proc-Type: 4,ENCRYPTED/.test(pem)) {
                     return forge.pki.decryptRsaPrivateKey(pem, password);
@@ -101,19 +91,12 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
                 readAsText(fileMap[caSerialFilename])
             ]);
 
-            console.debug('CA Cert PEM:', caCertPem);
-            console.debug('CA Key PEM:', caKeyPem);
-            console.debug('CA Password:', caPassText.trim());
-            console.debug('CA Serial:', caSerialText.trim());
-
             // 2. Get export password
             const exportPassword = document.getElementById('exportPassword').value.trim();
-            console.debug(`Export Password: ${exportPassword}`);
 
             // 3. Generate user keypair and CSR
             logToPage('Generating keypair and CSR...');
             const userKeyPair = forge.pki.rsa.generateKeyPair(2048);
-            console.debug('Generated User Key Pair:', userKeyPair);
 
             // CSR subject info
             const userCN = normHost;
@@ -619,14 +602,14 @@ document.getElementById('files').addEventListener('change', async function() {
     const zipFile = Array.from(this.files).find(f => f.name.endsWith('.zip'));
     if (zipFile) {
         output.textContent = 'Reading zip...';
-        let buf;
+        let buffer;
         try {
-            buf = await zipFile.arrayBuffer();
+            buffer = await zipFile.arrayBuffer();
         } catch (err) {
             output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
             throw err;
         }
-        fflate.unzip(new Uint8Array(buf), (err, files) => {
+        fflate.unzip(new Uint8Array(buffer), (err, files) => {
             if (err) {
                 output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
                 throw err;
@@ -641,7 +624,7 @@ document.getElementById('files').addEventListener('change', async function() {
                     }
                     return `<li>${f} ${sizeInfo}</li>`;
                 }).join('');
-                output.innerHTML = `<b>Files detected in zip:</b><br><ul style='margin-top:0.5em'>${details}</ul>`;
+                output.innerHTML = `<b>Files detected in zip:</b><br><ul>${details}</ul>`;
             } else {
                 output.innerHTML = `<span style='color:red'>No files detected in zip.</span>`;
             }
@@ -649,9 +632,15 @@ document.getElementById('files').addEventListener('change', async function() {
     } else {
         fileList = Object.keys(fileMap);
         if (fileList.length) {
-            output.innerHTML = `<b>Files detected:</b><br><ul style='margin-top:0.5em'>${fileList.map(f => `<li>${f}</li>`).join('')}</ul>`;
+            output.innerHTML = `<b>Files detected:</b><br><ul>${fileList.map(f => `<li>${f}</li>`).join('')}</ul>`;
         } else {
             output.textContent = 'No files detected.';
         }
     }
 });
+
+function logToPage(msg) {
+    const log = document.getElementById('console-log');
+    log.textContent += (msg + '\n');
+    log.scrollTop = log.scrollHeight;
+}
