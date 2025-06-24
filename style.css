@@ -8,88 +8,88 @@
   --color-sf-button-hover: #00559f;
 }
 body {
-  font-family: system-ui, sans-serif;
   background: var(--color-off-white);
+  font-family: system-ui, sans-serif;
   margin: 0;
   padding: 0;
 }
 .site-header {
   background: #fff;
-  box-shadow: 0 2px 12px #0001;
-  padding: 1.5em 2em 1em 2em;
   border-radius: 0 0 10px 10px;
+  box-shadow: 0 2px 12px #0001;
   margin-bottom: 1.5em;
+  padding: 1.5em 2em 1em 2em;
 }
 .site-header .title {
-  margin: 0;
   color: var(--color-sf-dark);
   font-size: 1.7em;
+  margin: 0;
 }
 .main-layout {
   display: flex;
   flex-direction: row;
-  gap: 2em;
-  max-width: 1100px;
-  margin: 0 auto;
-  min-height: 400px;
   align-items: flex-start;
+  gap: 2em;
+  margin: 0 auto;
+  max-width: 1100px;
+  min-height: 400px;
 }
 .panel {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 12px #0001;
-  padding: 2em 2.5em 2em 2.5em;
-  flex: 1 1 0;
-  min-width: 320px;
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   justify-content: flex-start;
+  min-width: 320px;
+  padding: 2em 2.5em 2em 2.5em;
 }
 .left-panel {
-  min-width: 400px;
   flex: 1 1 0;
+  min-width: 400px;
 }
 .right-panel {
   max-width: 400px;
 }
 .bottom-panel {
-  max-width: 1100px;
-  margin: 2em auto 0 auto;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 12px #0001;
+  margin: 2em auto 0 auto;
+  max-width: 1100px;
   padding: 1.5em 2em;
 }
 p.description {
-    margin-top: 0;
+  margin-top: 0;
 }
 label {
+  color: var(--color-sf-dark);
+  font-weight: 600;
   display: block;
   margin-top: 1em;
   margin-bottom: 0.3em;
-  color: var(--color-sf-dark);
-  font-weight: 600;
 }
 input[type="text"],
 input[type="email"],
 input[type="number"],
 input[type="password"],
 input[type="file"] {
-  width: 100%;
-  padding: 0.5em;
   border: 1px solid #bcd;
   border-radius: 5px;
-  margin-bottom: 0.5em;
   font-size: 1em;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  width: 100%;
 }
 button {
   background: var(--color-sf-button);
   color: #fff;
   border: none;
   border-radius: 5px;
-  padding: 0.7em 1.5em;
   font-size: 1em;
   margin-top: 1em;
+  padding: 0.7em 1.5em;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -97,25 +97,25 @@ button:hover {
   background: var(--color-sf-button-hover);
 }
 #output {
-  margin-top: 1em;
   color: var(--color-sf-dark);
+  margin-top: 1em;
   word-break: keep-all;
 }
 #output ul {
-  list-style: none;
   display: block;
+  list-style: none;
   overflow-x: visible;
-  white-space: nowrap;
   padding: 0 0 0 0.2em;
   margin: 0.1em 0 0 0;
+  white-space: nowrap;
 }
 #output li {
   display: flex;
   align-items: center;
   gap: 0.5em;
   max-width: 100%;
-  text-overflow: ellipsis;
   overflow: auto;
+  text-overflow: ellipsis;
   white-space: pre;
 }
 #output li::before {
@@ -130,14 +130,14 @@ button:hover {
   font-family: "Fira Mono", "Consolas", "Menlo", monospace;
   font-size: 0.98em;
   border-radius: 6px;
+  box-shadow: 0 1px 4px #0002;
   margin-top: 0;
   margin-bottom: 0;
-  padding: 1em 1.2em;
   min-height: 2em;
   max-height: 16em;
+  padding: 1em 1.2em;
   overflow-y: auto;
   white-space: pre-wrap;
-  box-shadow: 0 1px 4px #0002;
 }
 .tooltip {
   color: black;
