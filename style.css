@@ -1,6 +1,15 @@
+:root {
+  --color-sf-dark: #022d60;
+  --color-sf-light: #0270d2;
+  --color-sf-logo: #0f9dda;
+  --color-off-white: #f8fafc;
+  --color-off-black: #181c20;
+  --color-sf-button: var(--color-sf-light);
+  --color-sf-button-hover: #00559f;
+}
 body {
   font-family: system-ui, sans-serif;
-  background: #f8fafc;
+  background: var(--color-off-white);
   margin: 0;
   padding: 0;
 }
@@ -13,7 +22,7 @@ body {
 }
 .site-header .title {
   margin: 0;
-  color: #0a5c7d;
+  color: var(--color-sf-dark);
   font-size: 1.7em;
 }
 .main-layout {
@@ -58,7 +67,7 @@ label {
   display: block;
   margin-top: 1em;
   margin-bottom: 0.3em;
-  color: #0a5c7d;
+  color: var(--color-sf-dark);
   font-weight: 600;
 }
 input[type="text"],
@@ -74,7 +83,7 @@ input[type="file"] {
   font-size: 1em;
 }
 button {
-  background: #0a5c7d;
+  background: var(--color-sf-button);
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -85,30 +94,28 @@ button {
   transition: background 0.2s;
 }
 button:hover {
-  background: #0970a0;
+  background: var(--color-sf-button-hover);
 }
 #output {
   margin-top: 1em;
-  color: #0a5c7d;
+  color: var(--color-sf-dark);
   word-break: keep-all;
 }
 #output ul {
   list-style: none;
-  padding-left: 0;
   display: block;
   overflow-x: visible;
   white-space: nowrap;
-  padding: 0 0 0 0.5em;
-  margin: 0.5em 0 0 0;
+  padding: 0 0 0 0.2em;
+  margin: 0.1em 0 0 0;
 }
 #output li {
   display: flex;
   align-items: center;
   gap: 0.5em;
-  margin-right: 1.2em;
   max-width: 100%;
   text-overflow: ellipsis;
-  overflow: visible;
+  overflow: auto;
   white-space: pre;
 }
 #output li::before {
@@ -118,7 +125,7 @@ button:hover {
   line-height: 1;
 }
 #console-log {
-  background: #181c20;
+  background: var(--color-off-black);
   color: #e0e0e0;
   font-family: "Fira Mono", "Consolas", "Menlo", monospace;
   font-size: 0.98em;
