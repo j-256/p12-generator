@@ -21,14 +21,14 @@ body {
   padding: 1.5em 2em 1em 2em;
 }
 .site-header .title {
-  color: var(--color-sf-dark);
+  color: var(--color-sf-logo);
   font-size: 1.7em;
   margin: 0;
 }
 .main-layout {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
   gap: 2em;
   margin: 0 auto;
   max-width: 1100px;
@@ -39,18 +39,41 @@ body {
   border-radius: 10px;
   box-shadow: 0 2px 12px #0001;
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
   justify-content: flex-start;
   min-width: 320px;
   padding: 2em 2.5em 2em 2.5em;
 }
 .left-panel {
-  flex: 1 1 0;
-  min-width: 400px;
+  grid-column: 1;
+  grid-row: 1;
+}
+#formActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5em;
+  grid-column: 1;
+  grid-row: 2;
+}
+#formActions button {
+  margin-top: 0;
+  margin-right: 1em;
+}
+#formActions .button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  width: 100%;
+}
+#formActions p.description {
+  margin: 3em 0 0 0;
+  font-size: 0.98em;
+  color: var(--color-sf-dark);
 }
 .right-panel {
-  max-width: 400px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
 }
 .bottom-panel {
   background: #fff;
@@ -61,7 +84,7 @@ body {
   padding: 1.5em 2em;
 }
 p.description {
-  margin-top: 0;
+  margin: 3.5em 0 0 0;
 }
 label {
   color: var(--color-sf-dark);
@@ -96,7 +119,7 @@ button {
 button:hover {
   background: var(--color-sf-button-hover);
 }
-.file-status-icon {
+.inline-icon {
   display: inline-block;
   vertical-align: middle;
   width: 1em;
@@ -127,6 +150,21 @@ button:hover {
   text-overflow: ellipsis;
   white-space: pre;
 }
+#output {
+  color: var(--color-sf-dark);
+  font-size: 0.98em;
+  margin-top: 1em;
+  padding: 0.5em;
+  background: #f0f4f8;
+  border-radius: 5px;
+  box-shadow: 0 1px 4px #0002;
+}
+#downloadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  background: #28a745;
+}
 #console-log {
   background: var(--color-off-black);
   color: #e0e0e0;
@@ -150,6 +188,7 @@ button:hover {
 }
 @media (max-width: 900px) {
   .main-layout {
+    display: flex;
     flex-direction: column;
     gap: 1em;
   }
@@ -159,5 +198,9 @@ button:hover {
   }
   .left-panel {
     min-width: 0;
+  }
+  #formActions {
+    grid-column: auto;
+    grid-row: auto;
   }
 }

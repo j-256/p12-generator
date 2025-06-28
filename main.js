@@ -24,9 +24,9 @@ d = console.debug;
     }
     function getSvgIcon(type) {
         if (type === 'check') {
-            return `<img src="static/icons/check-mark.svg" alt="✔" class="file-status-icon file-status-check" width="20" height="20" loading="lazy">`;
+            return `<img src="static/icons/check-mark.svg" alt="✔" class="inline-icon" width="20" height="20" loading="lazy">`;
         } else {
-            return `<img src="static/icons/red-x.svg" alt="✖" class="file-status-icon file-status-x" width="20" height="20" loading="lazy">`;
+            return `<img src="static/icons/red-x.svg" alt="✖" class="inline-icon" width="20" height="20" loading="lazy">`;
         }
     }
     function renderFileStatus() {
@@ -186,7 +186,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             return;
         }
 
-        // output.innerHTML = `<b>Generating .p12 (in-browser)...`;
+        output.textContent = 'Working...';
         console.log('All required files found. Starting PKI logic...');
 
         // --- PKI logic start ---
@@ -289,12 +289,22 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             );
             const p12Der = forge.asn1.toDer(p12Asn1).getBytes();
             const blob = new Blob([new Uint8Array([...p12Der].map(c => c.charCodeAt(0)))], { type: 'application/x-pkcs12' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${userCN}.p12`;
-            a.textContent = 'Download .p12';
-            output.innerHTML += '<br>';
-            output.appendChild(a);
+            // Create a green download button with save.svg icon
+            const button = document.getElementById('downloadButton');
+            button.style.display = null; // unhide
+            button.onclick = function() {
+                // Append and click a link to trigger the download, then revoke the object URL to release memory
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${userCN}.p12`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    URL.revokeObjectURL(a.href);
+                    document.body.removeChild(a);
+                }, 100);
+            };
+            output.textContent = `PKCS#12 cert ready for download!`;
             logToPage('Done.');
             console.log('PKCS#12 Export Complete.');
         } catch (err) {

@@ -10,26 +10,29 @@
     <header class="site-header">
         <h1 class="title">Salesforce B2C .p12 Generator</h1>
     </header>
-    <div class="main-layout">
+    <form id="certForm" class="main-layout" autocomplete="on">
         <div class="panel left-panel">
-            <form id="certForm" autocomplete="on">
-                <p class="description">All fields are required.</p>
-                <label for="hostname">Hostname</label>
-                <input type="text" id="hostname" name="hostname" required placeholder="cert.staging.realm.customer.demandware.net">
-
-                <label for="years">Years until expiration</label>
-                <input type="number" id="years" name="years" min="1" required placeholder="10">
-
-                <label for="files">Upload Certificate Files (zip or individual)</label>
-                <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
-
-                <div id="fileList"></div>
-                <div id="output"></div>
-                <button type="submit">Generate .p12</button>
-            </form>
+            <label for="hostname">Hostname</label>
+            <input type="text" id="hostname" name="hostname" required placeholder="cert.staging.realm.customer.demandware.net">
+            
+            <label for="years">Years until expiration</label>
+            <input type="number" id="years" name="years" min="1" required placeholder="1">
+            
+            <label for="files">Upload Certificate Files (zip or individual)</label>
+            <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
+            
+            <div id="fileList"></div>
+            <div id="output"></div>
+        </div>
+        <div id="formActions">
+            <div class="button-row">
+                <button type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
+                <button type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
+            </div>
+            <p class="description">All fields are required.</p>
         </div>
         <div class="panel right-panel">
-            <form class="csr-fields" onsubmit="return false;">
+            <div class="csr-fields">
                 <label for="country">Country (2-letter code)</label>
                 <input type="text" id="country" name="country" maxlength="2" required placeholder="US" autocomplete="country">
 
@@ -49,11 +52,11 @@
                 <input type="email" id="email" name="email" required placeholder="user@company.com" autocomplete="email">
 
                 <label for="exportPassword">Export Password<span class="tooltip" title="This password will be required to use the resulting .p12 certificate later.">?</span></label>
-                <input type="password" id="exportPassword" name="exportPassword" required placeholder="1234" autocomplete="new-password">
-            </form>
+                <input type="password" id="exportPassword" name="exportPassword" required placeholder=".27Ag0]7hXomyB<v]A6yhE52B@9#qz&~" autocomplete="new-password">
+            </div>
         </div>
-    </div>
-    <div class="bottom-panel">
+    </form>
+    <div class="panel bottom-panel">
         <pre id="console-log"></pre>
     </div>
     <script src="/static/libraries.js"></script>
