@@ -4,7 +4,7 @@ module.exports = {
   entry: './webpack-entry.js',
   output: {
     path: path.resolve(__dirname, 'static'),
-    filename: 'bundle.js',
+    filename: 'libraries.js',
   },
   mode: 'development',
   devServer: {
