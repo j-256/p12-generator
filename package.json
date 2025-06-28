@@ -1,15 +1,15 @@
 {
-  "name": "gp12",
+  "name": "gen-p12",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "webpack serve --config webpack.config.js",
+    "start": "webpack --config webpack.config.js && webpack serve --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "james.klein@salesforce.com",
   "license": "ISC",
-  "description": "",
+  "description": "A static website which generates p12 files client-side for upload to Salesforce B2C Commerce.",
   "devDependencies": {
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
