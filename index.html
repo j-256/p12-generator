@@ -26,22 +26,6 @@
                 <div id="fileList"></div>
                 <div id="output"></div>
                 <button type="submit">Generate .p12</button>
-
-                <button type="button" id="debugFill">Fill Debug Values</button>
-                <script>
-                    document.getElementById('debugFill').addEventListener('click', function() {
-                        document.getElementById('hostname').value = 'staging.support02.dw.demandware.net';
-                        document.getElementById('years').value = '1';
-                        document.getElementById('country').value = 'US';
-                        document.getElementById('state').value = 'Illinois';
-                        document.getElementById('locality').value = 'Chicago';
-                        document.getElementById('organization').value = 'Salesforce';
-                        document.getElementById('orgUnit').value = 'Support';
-                        document.getElementById('email').value = 'james.klein@salesforce.com';
-                        document.getElementById('exportPassword').value = '1234';
-                        document.getElementById('hostname').dispatchEvent(new Event('input', { bubbles: true }));
-                    });
-                </script>
             </form>
         </div>
         <div class="panel right-panel">
