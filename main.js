@@ -1,4 +1,118 @@
+d = console.debug;
 // main.js
+// --- UI for expected/missing/unexpected files ---
+(function() {
+    const output = document.getElementById('output');
+    const fileList = document.getElementById('fileList');
+    const hostnameInput = document.getElementById('hostname');
+    const filesInput = document.getElementById('files');
+    function normalizeHostname(hostname) {
+        return hostname.replace(/[_-]/g, '.')
+            .replace(/^(production\.|development\.|staging\.|cert\.staging\.)/, '')
+            .replace(/\.demandware\.net$/, '')
+            .replace(/^/, 'cert.staging.')
+            .replace(/$/, '.demandware.net');
+    }
+    function getExpectedFilenames(hostname) {
+        const normHost = normalizeHostname(hostname);
+        return [
+            `${normHost}_01.crt`,
+            `${normHost}_01.key`,
+            `${normHost}_01.txt`,
+            `${normHost}.srl`
+        ];
+    }
+    function getSvgIcon(type) {
+        if (type === 'check') {
+            return `<img src="static/icons/check-mark.svg" alt="✔" class="file-status-icon file-status-check" width="20" height="20" loading="lazy">`;
+        } else {
+            return `<img src="static/icons/red-x.svg" alt="✖" class="file-status-icon file-status-x" width="20" height="20" loading="lazy">`;
+        }
+    }
+    function renderFileStatus() {
+        const hostname = hostnameInput.value.trim() || hostnameInput.placeholder;
+        const expectedFiles = getExpectedFilenames(hostname);
+        const uploaded = filesInput.files ? Array.from(filesInput.files) : [];
+        // Check for a zip file
+        const zipFile = uploaded.find(f => f.name.endsWith('.zip'));
+        if (zipFile) {
+            // Only unzip and log files if we haven't already for this file
+            if (renderFileStatus.lastZipName !== zipFile.name || renderFileStatus.lastZipSize !== zipFile.size) {
+                renderFileStatus.lastZipName = zipFile.name;
+                renderFileStatus.lastZipSize = zipFile.size;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const buffer = new Uint8Array(e.target.result);
+                    fflate.unzip(buffer, (err, files) => {
+                        if (err) {
+                            output.textContent = `<span style='color:red'>Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
+                            renderFileStatus.zipNames = [];
+                            return;
+                        }
+                        const zipNames = Object.keys(files);
+                        renderFileStatus.zipNames = zipNames;
+                        logToPage('Files in uploaded zip:\n  ' + zipNames.join('\n  '));
+                        updateZipFileStatus();
+                    });
+                };
+                reader.readAsArrayBuffer(zipFile);
+                return;
+            } else if (renderFileStatus.zipNames) {
+                updateZipFileStatus();
+                return;
+            } else {
+                return;
+            }
+            function updateZipFileStatus() {
+                const zipNames = renderFileStatus.zipNames || [];
+                let html = '<b>Required files:</b><ul class="required-files">';
+                for (const fname of expectedFiles) {
+                    const has = zipNames.includes(fname);
+                    html += `<li>${getSvgIcon(has ? 'check' : 'x')} ${fname}</li>`;
+                }
+                html += '</ul>';
+                // Unexpected files
+                const unexpected = zipNames.filter(f => !expectedFiles.includes(f) && !f.endsWith('.zip'));
+                if (unexpected.length) {
+                    html += `<b class="unexpected-files">Unexpected files:</b><ul>`;
+                    for (const fname of unexpected) {
+                        html += `<li>${getSvgIcon('x')} ${fname}</li>`;
+                    }
+                    html += '</ul>';
+                }
+                fileList.innerHTML = html;
+            }
+        } else {
+            // Clear zip cache if no zip is present
+            renderFileStatus.lastZipName = undefined;
+            renderFileStatus.lastZipSize = undefined;
+            renderFileStatus.zipNames = undefined;
+            // No zip, use uploaded files
+            const uploadedNames = uploaded.map(f => f.name);
+            let html = '<b>Required files:</b><ul>';
+            for (const fname of expectedFiles) {
+                const has = uploadedNames.includes(fname);
+                html += `<li>${getSvgIcon(has ? 'check' : 'x')} ${fname}</li>`;
+            }
+            html += '</ul>';
+            // Unexpected files
+            const unexpected = uploadedNames.filter(f => !expectedFiles.includes(f) && !f.endsWith('.zip'));
+            if (unexpected.length) {
+                html += `<b>Unexpected files:</b><ul>`;
+                for (const fname of unexpected) {
+                    html += `<li>${getSvgIcon('x')} ${fname}</li>`;
+                }
+                html += '</ul>';
+            }
+            fileList.innerHTML = html;
+        }
+    }
+    hostnameInput.addEventListener('input', renderFileStatus);
+    filesInput.addEventListener('change', renderFileStatus);
+    renderFileStatus();
+})();
+
+// main form submission logic
 document.getElementById('certForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const output = document.getElementById('output');
@@ -12,14 +126,15 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             return;
         }
 
-        // Helper: normalize hostname as in the bash script
-        function normalizeHostname(h) {
-            return h.replace(/[_-]/g, '.')
+        // No matter which hostname is entered, normalize to cert.staging.realm.customer.demandware.net
+        function normalizeHostname(hostname) {
+            return hostname.replace(/[_-]/g, '.')
                 .replace(/^(production\.|development\.|staging\.|cert\.staging\.)/, '')
                 .replace(/\.demandware\.net$/, '')
                 .replace(/^/, 'cert.staging.')
                 .replace(/$/, '.demandware.net');
         }
+
         const normHost = normalizeHostname(hostname);
         console.log(`Normalized Hostname: ${normHost}`);
 
@@ -57,6 +172,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
                     for (let [name, data] of Object.entries(files)) {
                         fileMap[name] = new File([data], name);
                     }
+                    output.textContent = 'Zip extracted successfully.';
                     resolve();
                 });
             });
@@ -70,7 +186,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             return;
         }
 
-        output.innerHTML = `<b>All required files found.</b><br>Generating .p12 (in-browser)...`;
+        // output.innerHTML = `<b>Generating .p12 (in-browser)...`;
         console.log('All required files found. Starting PKI logic...');
 
         // --- PKI logic start ---
@@ -82,7 +198,12 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
                     return forge.pki.privateKeyFromPem(pem);
                 }
             }
+
             // 1. Read CA cert, key, password, serial
+            // Note: We do NOT use the CA serial from the .srl file,
+            // instead we generate a new one based on the current unix timestamp.
+            // Usually the number in the .srl file is used and then incremented,
+            // but we cannot increment it in the browser so we cannot use it at all.
             const readAsText = file => file.text();
             const [caCertPem, caKeyPem, caPassText, caSerialText] = await Promise.all([
                 readAsText(fileMap[caCertFilename]),
@@ -589,54 +710,6 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             macData
         ]);
     };
-});
-
-document.getElementById('files').addEventListener('change', async function() {
-    const output = document.getElementById('output');
-    output.textContent = '';
-    let fileList = [];
-    let fileMap = {};
-    for (let file of this.files) {
-        fileMap[file.name] = file;
-    }
-    const zipFile = Array.from(this.files).find(f => f.name.endsWith('.zip'));
-    if (zipFile) {
-        output.textContent = 'Reading zip...';
-        let buffer;
-        try {
-            buffer = await zipFile.arrayBuffer();
-        } catch (err) {
-            output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
-            throw err;
-        }
-        fflate.unzip(new Uint8Array(buffer), (err, files) => {
-            if (err) {
-                output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
-                throw err;
-            }
-            fileList = Object.keys(files);
-            if (fileList.length) {
-                let details = fileList.map(f => {
-                    const meta = files[f];
-                    let sizeInfo = '';
-                    if (meta.compressedSize !== undefined && meta.originalSize !== undefined) {
-                        sizeInfo = `<small>(compressed: ${meta.compressedSize} bytes, uncompressed: ${meta.originalSize} bytes)</small>`;
-                    }
-                    return `<li>${f} ${sizeInfo}</li>`;
-                }).join('');
-                output.innerHTML = `<b>Files detected in zip:</b><br><ul>${details}</ul>`;
-            } else {
-                output.innerHTML = `<span style='color:red'>No files detected in zip.</span>`;
-            }
-        });
-    } else {
-        fileList = Object.keys(fileMap);
-        if (fileList.length) {
-            output.innerHTML = `<b>Files detected:</b><br><ul>${fileList.map(f => `<li>${f}</li>`).join('')}</ul>`;
-        } else {
-            output.textContent = 'No files detected.';
-        }
-    }
 });
 
 function logToPage(msg) {

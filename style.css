@@ -96,12 +96,18 @@ button {
 button:hover {
   background: var(--color-sf-button-hover);
 }
-#output {
+.file-status-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1em;
+}
+#fileList {
   color: var(--color-sf-dark);
   margin-top: 1em;
   word-break: keep-all;
 }
-#output ul {
+#fileList ul {
   display: block;
   list-style: none;
   overflow-x: visible;
@@ -109,7 +115,10 @@ button:hover {
   margin: 0.1em 0 0 0;
   white-space: nowrap;
 }
-#output li {
+#fileList ul.required-files {
+  margin-bottom: 0.5em;
+}
+#fileList li {
   display: flex;
   align-items: center;
   gap: 0.5em;
@@ -117,12 +126,6 @@ button:hover {
   overflow: auto;
   text-overflow: ellipsis;
   white-space: pre;
-}
-#output li::before {
-  content: "•";
-  flex-shrink: 0;
-  font-size: 1em;
-  line-height: 1;
 }
 #console-log {
   background: var(--color-off-black);

@@ -23,6 +23,7 @@
                 <label for="files">Upload Certificate Files (zip or individual)</label>
                 <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
 
+                <div id="fileList"></div>
                 <div id="output"></div>
                 <button type="submit">Generate .p12</button>
 
@@ -38,6 +39,7 @@
                         document.getElementById('orgUnit').value = 'Support';
                         document.getElementById('email').value = 'james.klein@salesforce.com';
                         document.getElementById('exportPassword').value = '1234';
+                        document.getElementById('hostname').dispatchEvent(new Event('input', { bubbles: true }));
                     });
                 </script>
             </form>
