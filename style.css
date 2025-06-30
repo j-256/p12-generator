@@ -43,8 +43,8 @@ body {
   white-space: normal;
 }
 .header-flex .title a {
-  color: inherit;
-  text-decoration: none;
+  color: var(--color-sf-logo) !important;
+  text-decoration: none !important;
   font-weight: inherit;
   font-size: inherit;
   transition: color 0.1s, text-decoration 0.1s;
