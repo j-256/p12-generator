@@ -51,8 +51,8 @@ body {
 }
 .header-flex .title a:hover,
 .header-flex .title a:focus {
-  color: var(--color-sf-light);
-  text-decoration: underline;
+  color: var(--color-sf-light) !important;
+  text-decoration: underline !important;
 }
 @media (max-width: 700px) {
   .header-flex {
