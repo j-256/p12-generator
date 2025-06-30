@@ -45,7 +45,8 @@ d = console.debug;
                     const buffer = new Uint8Array(e.target.result);
                     fflate.unzip(buffer, (err, files) => {
                         if (err) {
-                            output.textContent = `<span style='color:red'>Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
+                            output.style.display = null; // show output
+                            output.innerHTML = `<span style='color:red'>Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
                             renderFileStatus.zipNames = [];
                             return;
                         }
@@ -122,6 +123,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         const years = parseInt(document.getElementById('years').value, 10);
         const filesInput = document.getElementById('files');
         if (!hostname || !years || !filesInput.files.length) {
+            output.style.display = null; // show output
             output.textContent = 'Please fill all fields and upload the required files.';
             return;
         }
@@ -154,6 +156,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         // If a zip is present, extract its files and add to fileMap
         const zipFile = Array.from(filesInput.files).find(f => f.name.endsWith('.zip'));
         if (zipFile) {
+            output.style.display = null; // show output
             output.textContent = 'Extracting zip...';
             let buffer;
             try {
@@ -181,11 +184,13 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         // Check for required files
         const missing = requiredFiles.filter(f => !(f in fileMap));
         if (missing.length) {
+            output.style.display = null; // show output
             output.innerHTML = `<span style='color:red'>Missing required file(s):<br>${missing.join('<br>')}</span>`;
             console.log(`Missing Files: ${missing.join(', ')}`);
             return;
         }
 
+        output.style.display = null; // show output
         output.textContent = 'Working...';
         console.log('All required files found. Starting PKI logic...');
 
