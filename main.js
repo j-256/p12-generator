@@ -1,6 +1,12 @@
-d = console.debug;
 // main.js
-// --- UI for expected/missing/unexpected files ---
+
+// This file is intentionally unminified for transparency.
+// Forge is used for cryptographic operations, and fflate for zip handling.
+// The only Forge API not used as-is is the PKCS#12 export (forge.pkcs12.toPkcs12Asn1), 
+// which has been modified to allow specifying the MAC algorithm (sha1, sha256, sha384, sha512)
+// and to encrypt the certificate chain, not just the private key (toPkcs12Asn1New).
+
+// UI for expected/missing/unexpected files
 (function() {
     const output = document.getElementById('output');
     const fileList = document.getElementById('fileList');
