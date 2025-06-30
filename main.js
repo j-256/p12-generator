@@ -22,12 +22,9 @@ d = console.debug;
             `${normHost}.srl`
         ];
     }
-    function getSvgIcon(type) {
-        if (type === 'check') {
-            return `<img src="static/icons/check-mark.svg" alt="✔" class="inline-icon" width="20" height="20" loading="lazy">`;
-        } else {
-            return `<img src="static/icons/red-x.svg" alt="✖" class="inline-icon" width="20" height="20" loading="lazy">`;
-        }
+    const iconMarkup = {
+        check: `<img src="static/icons/check-mark.svg" alt="✔" class="inline-icon" width="20" height="20" loading="lazy">`,
+        x:     `<img src="static/icons/red-x.svg" alt="✖" class="inline-icon" width="20" height="20" loading="lazy">`
     }
     function renderFileStatus() {
         const hostname = hostnameInput.value.trim() || hostnameInput.placeholder;
@@ -69,7 +66,7 @@ d = console.debug;
                 let html = '<b>Required files:</b><ul class="required-files">';
                 for (const fname of expectedFiles) {
                     const has = zipNames.includes(fname);
-                    html += `<li>${getSvgIcon(has ? 'check' : 'x')} ${fname}</li>`;
+                    html += `<li>${has ? iconMarkup.check : iconMarkup.x} ${fname}</li>`;
                 }
                 html += '</ul>';
                 // Unexpected files
@@ -77,7 +74,7 @@ d = console.debug;
                 if (unexpected.length) {
                     html += `<b class="unexpected-files">Unexpected files:</b><ul>`;
                     for (const fname of unexpected) {
-                        html += `<li>${getSvgIcon('x')} ${fname}</li>`;
+                        html += `<li>${iconMarkup.x} ${fname}</li>`;
                     }
                     html += '</ul>';
                 }
@@ -93,7 +90,7 @@ d = console.debug;
             let html = '<b>Required files:</b><ul>';
             for (const fname of expectedFiles) {
                 const has = uploadedNames.includes(fname);
-                html += `<li>${getSvgIcon(has ? 'check' : 'x')} ${fname}</li>`;
+                html += `<li>${has ? iconMarkup.check : iconMarkup.x} ${fname}</li>`;
             }
             html += '</ul>';
             // Unexpected files
@@ -101,7 +98,7 @@ d = console.debug;
             if (unexpected.length) {
                 html += `<b>Unexpected files:</b><ul>`;
                 for (const fname of unexpected) {
-                    html += `<li>${getSvgIcon('x')} ${fname}</li>`;
+                    html += `<li>${iconMarkup.x} ${fname}</li>`;
                 }
                 html += '</ul>';
             }
