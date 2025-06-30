@@ -9,7 +9,10 @@
 </head>
 <body>
     <header class="site-header">
-        <h1 class="title">Salesforce B2C .p12 Generator</h1>
+        <div class="header-flex">
+            <h1 class="title"><a href="https://www.salesforce.com/commerce/b2c-ecommerce" target="_blank">Salesforce Commerce Cloud B2C</a> .p12 Generator</h1>
+            <span class="subtitle">Use your cert bundle to create an MFA certificate for code upload to Staging.</span>
+        </div>
     </header>
     <form id="certForm" class="main-layout" autocomplete="on">
         <div class="panel left-panel">
@@ -30,7 +33,7 @@
                 <button type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
                 <button type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
             </div>
-            <p class="description">All fields are required.</p>
+            <p class="description">All fields are required. Nothing is sent over the wire.</p>
         </div>
         <div class="panel right-panel">
             <div class="csr-fields">

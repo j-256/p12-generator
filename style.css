@@ -1,10 +1,11 @@
 :root {
+  /* Salesforce colors pulled from https://help.salesforce.com */
   --color-sf-dark: #022d60;
-  --color-sf-light: #0270d2;
+  --color-sf-light: #0176D4;
   --color-sf-logo: #0f9dda;
   --color-off-white: #f8fafc;
   --color-off-black: #181c20;
-  --color-sf-button: var(--color-sf-light);
+  --color-sf-button: #0270d2;
   --color-sf-button-hover: #00559f;
 }
 body {
@@ -24,6 +25,45 @@ body {
   color: var(--color-sf-logo);
   font-size: 1.7em;
   margin: 0;
+}
+.header-flex {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5em;
+}
+.header-flex .title {
+  margin: 0;
+}
+.header-flex .subtitle {
+  color: black;
+  font-size: 1.05em;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 0.5em;
+  white-space: normal;
+}
+.header-flex .title a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+  font-size: inherit;
+  transition: color 0.1s, text-decoration 0.1s;
+}
+.header-flex .title a:hover,
+.header-flex .title a:focus {
+  color: var(--color-sf-light);
+  text-decoration: underline;
+}
+@media (max-width: 700px) {
+  .header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3em;
+  }
+  .header-flex .subtitle {
+    margin-left: 0;
+    font-size: 0.98em;
+  }
 }
 .main-layout {
   display: grid;
