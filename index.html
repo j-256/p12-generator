@@ -22,7 +22,7 @@
             <label for="years">Years until expiration</label>
             <input type="number" id="years" name="years" min="1" required placeholder="1">
 
-            <label for="files">Upload Certificate Files (zip or individual)</label>
+            <label for="files">Select Certificate Files (zip or individual)</label>
             <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
 
             <div id="fileList"></div>
@@ -33,7 +33,7 @@
                 <button type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
                 <button type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
             </div>
-            <p class="description">All fields are required. Nothing is sent over the wire.</p>
+            <p class="description">All fields are required.<br><br>No secrets are ever sent to the server – everything happens in your browser.</p>
         </div>
         <div class="panel right-panel">
             <div class="csr-fields">
