@@ -17,46 +17,46 @@
     <form id="certForm" class="main-layout" autocomplete="on">
         <div class="panel left-panel">
             <label for="hostname">Hostname</label>
-            <input type="text" id="hostname" name="hostname" required placeholder="cert.staging.realm.customer.demandware.net">
+            <input tabindex="1" type="text" id="hostname" name="hostname" required placeholder="cert.staging.realm.customer.demandware.net">
 
             <label for="years">Years until expiration</label>
-            <input type="number" id="years" name="years" min="1" required placeholder="1">
+            <input tabindex="2" type="number" id="years" name="years" min="1" required placeholder="1">
 
             <label for="files">Select Certificate Files (zip or individual)</label>
-            <input type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
+            <input tabindex="3" type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
 
             <div id="fileList"></div>
             <div id="output" style="display: none;"></div>
         </div>
         <div id="formActions">
             <div class="button-row">
-                <button type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
-                <button type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
+                <button tabindex="11" type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
+                <button tabindex="12" type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
             </div>
             <p class="description">All fields are required.<br><br>No secrets are ever sent to the server – everything happens in your browser.</p>
         </div>
         <div class="panel right-panel">
             <div class="csr-fields">
                 <label for="country">Country (2-letter code)</label>
-                <input type="text" id="country" name="country" maxlength="2" required placeholder="US" autocomplete="country">
+                <input tabindex="4" type="text" id="country" name="country" maxlength="2" required placeholder="US" autocomplete="country">
 
                 <label for="state">State or Province</label>
-                <input type="text" id="state" name="state" required placeholder="California" autocomplete="address-level1">
+                <input tabindex="5" type="text" id="state" name="state" required placeholder="California" autocomplete="address-level1">
 
                 <label for="locality">Locality (City)</label>
-                <input type="text" id="locality" name="locality" required placeholder="San Francisco" autocomplete="address-level2">
+                <input tabindex="6" type="text" id="locality" name="locality" required placeholder="San Francisco" autocomplete="address-level2">
 
                 <label for="organization">Organization</label>
-                <input type="text" id="organization" name="organization" required placeholder="Salesforce" autocomplete="organization">
+                <input tabindex="7" type="text" id="organization" name="organization" required placeholder="Salesforce" autocomplete="organization">
 
                 <label for="orgUnit">Organizational Unit</label>
-                <input type="text" id="orgUnit" name="orgUnit" required placeholder="Support" autocomplete="on">
+                <input tabindex="8" type="text" id="orgUnit" name="orgUnit" required placeholder="Support" autocomplete="on">
 
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required placeholder="user@company.com" autocomplete="email">
+                <input tabindex="9" type="email" id="email" name="email" required placeholder="user@company.com" autocomplete="email">
 
                 <label for="exportPassword">Export Password<span class="tooltip" title="This password will be required to use the resulting .p12 certificate later.">?</span></label>
-                <input type="password" id="exportPassword" name="exportPassword" required placeholder=".27Ag0]7hXomyB<v]A6yhE52B@9#qz&~" autocomplete="new-password">
+                <input tabindex="10" type="password" id="exportPassword" name="exportPassword" required placeholder=".27Ag0]7hXomyB<v]A6yhE52B@9#qz&~" autocomplete="new-password">
             </div>
         </div>
     </form>
