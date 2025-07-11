@@ -112,7 +112,12 @@
         }
     }
     hostnameInput.addEventListener('input', renderFileStatus);
-    filesInput.addEventListener('change', renderFileStatus);
+    filesInput.addEventListener('change', function() {
+        // Hide and clear the output box when new files are selected
+        output.style.display = 'none';
+        output.textContent = '';
+        renderFileStatus();
+    });
     renderFileStatus();
 })();
 
