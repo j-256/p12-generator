@@ -301,10 +301,13 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             const button = document.getElementById('downloadButton');
             button.style.display = null; // unhide
             button.onclick = function() {
+                // Use email address up to @ for filename prefix
+                const emailPrefix = email.split('@')[0];
+                const filename = `${emailPrefix}-${normHost}.p12`;
                 // Append and click a link to trigger the download, then revoke the object URL to release memory
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `${userCN}.p12`;
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => {
