@@ -12,13 +12,6 @@
     const fileList = document.getElementById('fileList');
     const hostnameInput = document.getElementById('hostname');
     const filesInput = document.getElementById('files');
-    function normalizeHostname(hostname) {
-        return hostname.replace(/[_-]/g, '.')
-            .replace(/^(production\.|development\.|staging\.|cert\.staging\.)/, '')
-            .replace(/\.demandware\.net$/, '')
-            .replace(/^/, 'cert.staging.')
-            .replace(/$/, '.demandware.net');
-    }
     function getExpectedFilenames(hostname) {
         const normHost = normalizeHostname(hostname);
         return [
@@ -137,14 +130,6 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         }
 
         // No matter which hostname is entered, normalize to cert.staging.realm.customer.demandware.net
-        function normalizeHostname(hostname) {
-            return hostname.replace(/[_-]/g, '.')
-                .replace(/^(production\.|development\.|staging\.|cert\.staging\.)/, '')
-                .replace(/\.demandware\.net$/, '')
-                .replace(/^/, 'cert.staging.')
-                .replace(/$/, '.demandware.net');
-        }
-
         const normHost = normalizeHostname(hostname);
         console.log(`Normalized Hostname: ${normHost}`);
 
@@ -486,7 +471,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
 
             // Used to encrypt the cert chain. By default, only the private key is encrypted.
             // It's unusual to encrypt more than the private key, but that is what the openssl
-            // commands do.
+            // commands we are mimicking do.
             function encryptSafeContentsAsEncryptedData(safeContentsBytes, password, options) {
                 options = options || {};
                 const saltSize = options.saltSize || 8;
@@ -738,6 +723,16 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
     };
 });
 
+// Normalizes a Business Manager hostname to the format cert.staging.realm.customer.demandware.net
+function normalizeHostname(hostname) {
+    return hostname.replace(/[_-]/g, '.')
+        .replace(/^(production\.|development\.|staging\.|cert\.staging\.)/, '')
+        .replace(/\.demandware\.net$/, '')
+        .replace(/^/, 'cert.staging.')
+        .replace(/$/, '.demandware.net');
+}
+
+// Adds a line of text to the "console" on the page
 function logToPage(msg) {
     const log = document.getElementById('console-log');
     log.textContent += (msg + '\n');
