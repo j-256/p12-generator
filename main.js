@@ -41,8 +41,8 @@
                     const buffer = new Uint8Array(e.target.result);
                     fflate.unzip(buffer, (err, files) => {
                         if (err) {
-                            output.style.display = null; // show output
-                            output.innerHTML = `<span style='color:red'>Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
+                            output.classList.remove('hidden');
+                            output.innerHTML = `<span class="error">Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
                             renderFileStatus.zipNames = [];
                             return;
                         }
@@ -107,7 +107,7 @@
     hostnameInput.addEventListener('input', renderFileStatus);
     filesInput.addEventListener('change', function() {
         // Hide and clear the output box when new files are selected
-        output.style.display = 'none';
+        output.classList.add('hidden');
         output.textContent = '';
         renderFileStatus();
     });
@@ -124,7 +124,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         const years = parseInt(document.getElementById('years').value, 10);
         const filesInput = document.getElementById('files');
         if (!hostname || !years || !filesInput.files.length) {
-            output.style.display = null; // show output
+            output.classList.remove('hidden');
             output.textContent = 'Please fill all fields and upload the required files.';
             return;
         }
@@ -149,7 +149,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         // If a zip is present, extract its files and add to fileMap
         const zipFile = Array.from(filesInput.files).find(f => f.name.endsWith('.zip'));
         if (zipFile) {
-            output.style.display = null; // show output
+            output.classList.remove('hidden');
             output.textContent = 'Extracting zip...';
             let buffer;
             try {
@@ -177,13 +177,13 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         // Check for required files
         const missing = requiredFiles.filter(f => !(f in fileMap));
         if (missing.length) {
-            output.style.display = null; // show output
-            output.innerHTML = `<span style='color:red'>Missing required file(s):<br>${missing.join('<br>')}</span>`;
+            output.classList.remove('hidden');
+            output.innerHTML = `<span class="error">Missing required file(s):<br>${missing.join('<br>')}</span>`;
             console.log(`Missing Files: ${missing.join(', ')}`);
             return;
         }
 
-        output.style.display = null; // show output
+        output.classList.remove('hidden');
         output.textContent = 'Working...';
         console.log('All required files found. Starting PKI logic...');
 
@@ -289,7 +289,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             const blob = new Blob([new Uint8Array([...p12Der].map(c => c.charCodeAt(0)))], { type: 'application/x-pkcs12' });
             // Create a green download button with save.svg icon
             const button = document.getElementById('downloadButton');
-            button.style.display = null; // unhide
+            button.classList.remove('hidden');
             button.onclick = function() {
                 // Use email address up to @ for filename prefix
                 const emailPrefix = email.split('@')[0];

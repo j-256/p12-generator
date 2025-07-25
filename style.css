@@ -1,7 +1,7 @@
 :root {
   /* Salesforce colors pulled from https://help.salesforce.com */
   --color-sf-dark: #022d60;
-  --color-sf-light: #0176D4;
+  --color-sf-light: #0176d4;
   --color-sf-logo: #0f9dda;
   --color-off-white: #f8fafc;
   --color-off-black: #181c20;
@@ -88,29 +88,6 @@ body {
   grid-column: 1;
   grid-row: 1;
 }
-#formActions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5em;
-  grid-column: 1;
-  grid-row: 2;
-}
-#formActions button {
-  margin-top: 0;
-  margin-right: 1em;
-}
-#formActions .button-row {
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
-  width: 100%;
-}
-#formActions p.description {
-  margin: 3em 0 0 0;
-  font-size: 0.98em;
-  color: var(--color-sf-dark);
-}
 .right-panel {
   grid-column: 2;
   grid-row: 1 / span 2;
@@ -164,6 +141,41 @@ button:hover {
   vertical-align: middle;
   width: 1em;
   height: 1em;
+}
+.tooltip {
+  color: black;
+  font-size: smaller;
+  vertical-align: super;
+  cursor: help;
+}
+.error {
+  color: red !important;
+}
+.hidden {
+  display: none !important;
+}
+#formActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5em;
+  grid-column: 1;
+  grid-row: 2;
+}
+#formActions button {
+  margin-top: 0;
+  margin-right: 1em;
+}
+#formActions .button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  width: 100%;
+}
+#formActions p.description {
+  margin: 3em 0 0 0;
+  font-size: 0.98em;
+  color: var(--color-sf-dark);
 }
 #fileList {
   color: var(--color-sf-dark);
@@ -219,12 +231,6 @@ button:hover {
   padding: 1em 1.2em;
   overflow-y: auto;
   white-space: pre-wrap;
-}
-.tooltip {
-  color: black;
-  font-size: smaller;
-  vertical-align: super;
-  cursor: help;
 }
 @media (max-width: 900px) {
   .main-layout {

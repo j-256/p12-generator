@@ -26,12 +26,12 @@
             <input tabindex="3" type="file" id="files" name="files" multiple required accept=".zip,.crt,.key,.srl,.txt">
 
             <div id="fileList"></div>
-            <div id="output" style="display: none;"></div>
+            <div id="output" class="hidden"></div>
         </div>
         <div id="formActions">
             <div class="button-row">
                 <button tabindex="11" type="submit"><img src="/static/icons/scroll.svg" alt="Script" class="inline-icon" width="20" height="20" loading="lazy"> Generate .p12</button>
-                <button tabindex="12" type="button" id="downloadButton" style="display: none;"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
+                <button tabindex="12" type="button" id="downloadButton" class="hidden"><img src="/static/icons/save.svg" alt="Save" class="inline-icon" width="20" height="20" loading="lazy"> Download .p12</button>
             </div>
             <p class="description">All fields are required.<br><br>No secrets are ever sent to the server – everything happens in your browser.</p>
         </div>
