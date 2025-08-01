@@ -155,13 +155,13 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             try {
                 buffer = await zipFile.arrayBuffer();
             } catch (err) {
-                output.innerHTML = `<span style='color:red'>Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
+                output.innerHTML = `<span class="error">Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
                 throw err;
             }
             await new Promise((resolve, reject) => {
                 fflate.unzip(new Uint8Array(buffer), (err, files) => {
                     if (err) {
-                        output.innerHTML = `<span style='color:red'>Error extracting zip: ${err.message || JSON.stringify(err)}</span>`;
+                        output.innerHTML = `<span class="error">Error extracting zip: ${err.message || JSON.stringify(err)}</span>`;
                         reject(err);
                         return;
                     }
@@ -246,7 +246,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             const caKeyObj = pemToPrivateKey(caKeyPem, caPassText.trim());
             if (!caKeyObj) {
                 logToPage('Failed to parse/import CA private key.');
-                output.innerHTML = `<span style='color:red'>Failed to parse/import CA private key.</span>`;
+                output.innerHTML = `<span class="error">Failed to parse/import CA private key.</span>`;
                 throw new Error('Failed to parse/import CA private key.');
             }
             console.log('Parsed CA Cert Object:', caCertObj);
@@ -310,12 +310,12 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             console.log('PKCS#12 Export Complete.');
         } catch (err) {
             logToPage('Error during certificate generation: ' + (err.message || JSON.stringify(err)));
-            output.innerHTML = `<span style='color:red'>Error during certificate generation: ${err.message || JSON.stringify(err)}</span>`;
+            output.innerHTML = `<span class="error">Error during certificate generation: ${err.message || JSON.stringify(err)}</span>`;
             console.error('Error during certificate generation:', err);
             throw err;
         }
     } catch (err) {
-        output.innerHTML = `<span style='color:red'>Unexpected error: ${err.message || JSON.stringify(err)}</span>`;
+        output.innerHTML = `<span class="error">Unexpected error: ${err.message || JSON.stringify(err)}</span>`;
         throw err;
     }
     /**
