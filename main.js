@@ -190,7 +190,8 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         // --- PKI logic start ---
         try {
             function pemToPrivateKey(pem, password) {
-                if (/Proc-Type: 4,ENCRYPTED/.test(pem)) {
+                if (/Proc-Type: 4,ENCRYPTED/.test(pem) ||
+                    /-----BEGIN ENCRYPTED PRIVATE KEY-----/.test(pem)) {
                     return forge.pki.decryptRsaPrivateKey(pem, password);
                 } else {
                     return forge.pki.privateKeyFromPem(pem);
