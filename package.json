@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "james.klein@salesforce.com",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "description": "A static website which generates p12 files in the browser for code upload to Salesforce B2C Commerce Staging instances.",
   "devDependencies": {
     "webpack": "^5.99.9",

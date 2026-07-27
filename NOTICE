@@ -1,0 +1,27 @@
+p12-generator
+Copyright (c) 2025 Salesforce, Inc.
+All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+This tool was developed using Salesforce resources, so copyright is held by
+Salesforce, Inc. rather than by the author. It is NOT an official Salesforce
+product or release: it is not published, supported, or endorsed by Salesforce,
+and it carries no warranty or support commitment of any kind. It is published by
+its author under the Apache License, Version 2.0.
+
+Icons are from svgrepo.com, drawn from the Twemoji, Flat UI, and Essential
+collections; see static/icons/ATTRIBUTION.txt for the collection links and their
+respective terms.
+
+The PKCS#12 export routine in main.js (toPkcs12Asn1New) is a modified derivative
+of forge.pkcs12.toPkcs12Asn1 from node-forge, altered to make the MAC algorithm
+selectable and to encrypt the certificate chain in addition to the private key.
+That routine remains under node-forge's terms (BSD-3-Clause OR GPL-2.0).
+
+Bundled dependencies retain their own licenses: node-forge (BSD-3-Clause OR
+GPL-2.0) and fflate (MIT).
