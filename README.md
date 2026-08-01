@@ -4,6 +4,8 @@ Issue the client certificate that Salesforce B2C Commerce two-factor code upload
 
 **Live: [p12.sfcc-test.com](https://p12.sfcc-test.com)**
 
+![The generator form filled in: hostname, expiry, and certificate subject details, with the required-file checklist derived live from the hostname](docs/form.png)
+
 ## Why
 
 Two-factor code upload to a Staging instance authenticates with a client certificate. B2C Commerce gives you a CA bundle -- `<host>_01.crt`, `<host>_01.key`, `<host>_01.txt` (the key's password), and `<host>.srl` -- and expects you to generate your own keypair, sign a certificate against that CA, and bundle the result into a PKCS#12 keystore.

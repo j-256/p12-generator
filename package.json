@@ -5,6 +5,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "start": "npm run build && webpack serve --config webpack.config.js",
+    "screenshots": "node scripts/screenshots.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,6 +13,7 @@
   "license": "Apache-2.0",
   "description": "A static website which generates p12 files in the browser for code upload to Salesforce B2C Commerce Staging instances.",
   "devDependencies": {
+    "playwright": "^1.61.1",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
