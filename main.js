@@ -6,6 +6,28 @@
 // which has been modified to allow specifying the MAC algorithm (sha1, sha256, sha384, sha512)
 // and to encrypt the certificate chain, not just the private key (toPkcs12Asn1New).
 
+function errorMessage(error) {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    try {
+        return JSON.stringify(error);
+    } catch {
+        return String(error);
+    }
+}
+
+function showError(output, message, details = []) {
+    const error = document.createElement('span');
+    error.className = 'error';
+    error.append(document.createTextNode(message));
+    for (const detail of details) {
+        error.append(document.createElement('br'), document.createTextNode(detail));
+    }
+    output.classList.remove('hidden');
+    output.replaceChildren(error);
+}
+
 // UI for expected/missing/unexpected files
 (function() {
     const output = document.getElementById('output');
@@ -21,9 +43,45 @@
             `${normHost}.srl`
         ];
     }
-    const iconMarkup = {
-        check: `<img src="static/icons/check-mark.svg" alt="✔" class="inline-icon" width="20" height="20" loading="lazy">`,
-        x:     `<img src="static/icons/red-x.svg" alt="✖" class="inline-icon" width="20" height="20" loading="lazy">`
+    const iconDetails = {
+        check: { src: 'static/icons/check-mark.svg', alt: '✔' },
+        x: { src: 'static/icons/red-x.svg', alt: '✖' }
+    };
+    function statusIcon(present) {
+        const details = present ? iconDetails.check : iconDetails.x;
+        const icon = document.createElement('img');
+        icon.src = details.src;
+        icon.alt = details.alt;
+        icon.className = 'inline-icon';
+        icon.width = 20;
+        icon.height = 20;
+        icon.loading = 'lazy';
+        return icon;
+    }
+    function appendStatusSection(label, filenames, isPresent, className) {
+        const heading = document.createElement('b');
+        heading.textContent = label;
+        if (className) {
+            heading.className = className;
+        }
+        const list = document.createElement('ul');
+        if (label === 'Required files:') {
+            list.className = 'required-files';
+        }
+        for (const filename of filenames) {
+            const item = document.createElement('li');
+            item.append(statusIcon(isPresent(filename)), document.createTextNode(` ${filename}`));
+            list.append(item);
+        }
+        fileList.append(heading, list);
+    }
+    function updateFileStatus(filenames, expectedFiles) {
+        const unexpected = filenames.filter(filename => !expectedFiles.includes(filename) && !filename.endsWith('.zip'));
+        fileList.replaceChildren();
+        appendStatusSection('Required files:', expectedFiles, filename => filenames.includes(filename));
+        if (unexpected.length) {
+            appendStatusSection('Unexpected files:', unexpected, () => false, 'unexpected-files');
+        }
     }
     function renderFileStatus() {
         const hostname = hostnameInput.value.trim() || hostnameInput.placeholder;
@@ -41,8 +99,7 @@
                     const buffer = new Uint8Array(e.target.result);
                     fflate.unzip(buffer, (err, files) => {
                         if (err) {
-                            output.classList.remove('hidden');
-                            output.innerHTML = `<span class="error">Error reading zip: ${err.message || JSON.stringify(err)}</span>`;
+                            showError(output, `Error reading zip: ${errorMessage(err)}`);
                             renderFileStatus.zipNames = [];
                             return;
                         }
@@ -62,22 +119,7 @@
             }
             function updateZipFileStatus() {
                 const zipNames = renderFileStatus.zipNames || [];
-                let html = '<b>Required files:</b><ul class="required-files">';
-                for (const fname of expectedFiles) {
-                    const has = zipNames.includes(fname);
-                    html += `<li>${has ? iconMarkup.check : iconMarkup.x} ${fname}</li>`;
-                }
-                html += '</ul>';
-                // Unexpected files
-                const unexpected = zipNames.filter(f => !expectedFiles.includes(f) && !f.endsWith('.zip'));
-                if (unexpected.length) {
-                    html += `<b class="unexpected-files">Unexpected files:</b><ul>`;
-                    for (const fname of unexpected) {
-                        html += `<li>${iconMarkup.x} ${fname}</li>`;
-                    }
-                    html += '</ul>';
-                }
-                fileList.innerHTML = html;
+                updateFileStatus(zipNames, expectedFiles);
             }
         } else {
             // Clear zip cache if no zip is present
@@ -86,22 +128,7 @@
             renderFileStatus.zipNames = undefined;
             // No zip, use uploaded files
             const uploadedNames = uploaded.map(f => f.name);
-            let html = '<b>Required files:</b><ul>';
-            for (const fname of expectedFiles) {
-                const has = uploadedNames.includes(fname);
-                html += `<li>${has ? iconMarkup.check : iconMarkup.x} ${fname}</li>`;
-            }
-            html += '</ul>';
-            // Unexpected files
-            const unexpected = uploadedNames.filter(f => !expectedFiles.includes(f) && !f.endsWith('.zip'));
-            if (unexpected.length) {
-                html += `<b>Unexpected files:</b><ul>`;
-                for (const fname of unexpected) {
-                    html += `<li>${iconMarkup.x} ${fname}</li>`;
-                }
-                html += '</ul>';
-            }
-            fileList.innerHTML = html;
+            updateFileStatus(uploadedNames, expectedFiles);
         }
     }
     hostnameInput.addEventListener('input', renderFileStatus);
@@ -141,9 +168,9 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         const requiredFiles = [caCertFilename, caKeyFilename, caPassFilename, caSerialFilename];
 
         // Build fileMap from individual files
-        let fileMap = {};
+        const fileMap = new Map();
         for (let file of filesInput.files) {
-            fileMap[file.name] = file;
+            fileMap.set(file.name, file);
         }
 
         // If a zip is present, extract its files and add to fileMap
@@ -155,18 +182,18 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             try {
                 buffer = await zipFile.arrayBuffer();
             } catch (err) {
-                output.innerHTML = `<span class="error">Error reading zip file: ${err.message || JSON.stringify(err)}</span>`;
+                showError(output, `Error reading zip file: ${errorMessage(err)}`);
                 throw err;
             }
             await new Promise((resolve, reject) => {
                 fflate.unzip(new Uint8Array(buffer), (err, files) => {
                     if (err) {
-                        output.innerHTML = `<span class="error">Error extracting zip: ${err.message || JSON.stringify(err)}</span>`;
+                        showError(output, `Error extracting zip: ${errorMessage(err)}`);
                         reject(err);
                         return;
                     }
                     for (let [name, data] of Object.entries(files)) {
-                        fileMap[name] = new File([data], name);
+                        fileMap.set(name, new File([data], name));
                     }
                     output.textContent = 'Zip extracted successfully.';
                     resolve();
@@ -175,10 +202,9 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
         }
 
         // Check for required files
-        const missing = requiredFiles.filter(f => !(f in fileMap));
+        const missing = requiredFiles.filter(filename => !fileMap.has(filename));
         if (missing.length) {
-            output.classList.remove('hidden');
-            output.innerHTML = `<span class="error">Missing required file(s):<br>${missing.join('<br>')}</span>`;
+            showError(output, 'Missing required file(s):', missing);
             console.log(`Missing Files: ${missing.join(', ')}`);
             return;
         }
@@ -205,10 +231,10 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             // but we cannot increment it in the browser so we cannot use it at all.
             const readAsText = file => file.text();
             const [caCertPem, caKeyPem, caPassText, caSerialText] = await Promise.all([
-                readAsText(fileMap[caCertFilename]),
-                readAsText(fileMap[caKeyFilename]),
-                readAsText(fileMap[caPassFilename]),
-                readAsText(fileMap[caSerialFilename])
+                readAsText(fileMap.get(caCertFilename)),
+                readAsText(fileMap.get(caKeyFilename)),
+                readAsText(fileMap.get(caPassFilename)),
+                readAsText(fileMap.get(caSerialFilename))
             ]);
 
             // 2. Get export password
@@ -247,7 +273,7 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             const caKeyObj = pemToPrivateKey(caKeyPem, caPassText.trim());
             if (!caKeyObj) {
                 logToPage('Failed to parse/import CA private key.');
-                output.innerHTML = `<span class="error">Failed to parse/import CA private key.</span>`;
+                showError(output, 'Failed to parse/import CA private key.');
                 throw new Error('Failed to parse/import CA private key.');
             }
             console.log('Parsed CA Cert Object:', caCertObj);
@@ -310,13 +336,13 @@ document.getElementById('certForm').addEventListener('submit', async function(e)
             logToPage('Done.');
             console.log('PKCS#12 Export Complete.');
         } catch (err) {
-            logToPage('Error during certificate generation: ' + (err.message || JSON.stringify(err)));
-            output.innerHTML = `<span class="error">Error during certificate generation: ${err.message || JSON.stringify(err)}</span>`;
+            logToPage('Error during certificate generation: ' + errorMessage(err));
+            showError(output, `Error during certificate generation: ${errorMessage(err)}`);
             console.error('Error during certificate generation:', err);
             throw err;
         }
     } catch (err) {
-        output.innerHTML = `<span class="error">Unexpected error: ${err.message || JSON.stringify(err)}</span>`;
+        showError(output, `Unexpected error: ${errorMessage(err)}`);
         throw err;
     }
     /**
