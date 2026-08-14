@@ -15,11 +15,11 @@
   "devDependencies": {
     "playwright": "^1.61.1",
     "webpack": "^5.109.2",
-    "webpack-cli": "^6.0.1",
+    "webpack-cli": "^7.2.2",
     "webpack-dev-server": "^6.0.0"
   },
   "dependencies": {
-    "fflate": "^0.8.2",
+    "fflate": "^0.8.3",
     "node-forge": "^1.4.0"
   }
 }
