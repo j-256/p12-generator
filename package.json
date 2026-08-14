@@ -14,12 +14,12 @@
   "description": "A static website which generates p12 files in the browser for code upload to Salesforce B2C Commerce Staging instances.",
   "devDependencies": {
     "playwright": "^1.61.1",
-    "webpack": "^5.99.9",
+    "webpack": "^5.109.2",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2"
+    "webpack-dev-server": "^6.0.0"
   },
   "dependencies": {
     "fflate": "^0.8.2",
-    "node-forge": "^1.3.1"
+    "node-forge": "^1.4.0"
   }
 }
