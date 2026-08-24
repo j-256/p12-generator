@@ -6,7 +6,6 @@ module.exports = {
     path: path.resolve(__dirname, 'static'),
     filename: 'libraries.js',
   },
-  mode: 'development',
   devServer: {
     static: {
       directory: __dirname,

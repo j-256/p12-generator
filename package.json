@@ -2,11 +2,14 @@
   "name": "gen-p12",
   "version": "1.0.0",
   "main": "main.js",
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "npm run build && webpack serve --config webpack.config.js",
+    "build": "webpack --config webpack.config.js --mode production",
+    "start": "webpack serve --config webpack.config.js --mode development",
     "screenshots": "node scripts/screenshots.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test"
   },
   "keywords": [],
   "author": "james.klein@salesforce.com",

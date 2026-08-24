@@ -33,9 +33,10 @@ Certificates are signed with SHA-256. The serial number is derived from the curr
 ## Development
 
 ```bash
-npm install
-npm start        # webpack-dev-server
+npm ci
+npm test
 npm run build
+npm start        # webpack-dev-server
 ```
 
 A single webpack bundle over a static page. There is no backend to run.
