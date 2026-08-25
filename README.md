@@ -4,7 +4,7 @@ Issue the client certificate that Salesforce B2C Commerce two-factor code upload
 
 **Live: [p12.sfcc-test.com](https://p12.sfcc-test.com)**
 
-![The generator form filled in: hostname, expiry, and certificate subject details, with the required-file checklist derived live from the hostname](docs/form.png)
+![The generator form filled in: hostname, expiry, and certificate subject details, with the required-file checklist derived live from the hostname](docs/screenshots/cover.png)
 
 ## Why
 

@@ -19,13 +19,14 @@
 
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { extname, join, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const OUT = process.argv[2] || join(ROOT, 'docs');
+const COVER = join(ROOT, 'docs', 'screenshots', 'cover.png');
 
 // Two side-by-side panels; this width shows both without wrapping, and the form
 // is short enough that the viewport height captures it whole.
@@ -124,6 +125,11 @@ async function main() {
     });
     await page.screenshot({ path: join(OUT, 'form.png'), clip });
     console.log('  wrote form.png');
+    if (process.argv[2] === undefined) {
+      mkdirSync(dirname(COVER), { recursive: true });
+      copyFileSync(join(OUT, 'form.png'), COVER);
+      console.log('  wrote screenshots/cover.png');
+    }
 
     await browser.close();
   } finally {

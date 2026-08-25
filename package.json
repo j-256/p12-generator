@@ -9,7 +9,8 @@
     "build": "webpack --config webpack.config.js --mode production",
     "start": "webpack serve --config webpack.config.js --mode development",
     "screenshots": "node scripts/screenshots.mjs",
-    "test": "node --test"
+    "check:docs-cover": "node scripts/check-docs-cover.mjs",
+    "test": "npm run check:docs-cover && node --test"
   },
   "keywords": [],
   "author": "james.klein@salesforce.com",
