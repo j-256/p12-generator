@@ -41,6 +41,10 @@ npm start        # webpack-dev-server
 
 A single webpack bundle over a static page. There is no backend to run.
 
+## Releases
+
+Use `npm version` as the only release entrypoint. To publish the version already declared in `package.json`, run `npm version "$(node -p 'require("./package.json").version')" --allow-same-version`; later releases use `npm version <major|minor|patch>`. Both forms run the clean-main and remote-synchronization guard, repeat the release check, create the version commit and tag, and push both refs atomically. The tag-triggered GitHub Actions workflow verifies the exact tagged static application and creates the published GitHub Release; an explicit workflow dispatch can safely retry an existing tag.
+
 ## License and attribution
 
 Apache-2.0 -- see [LICENSE](LICENSE) and [NOTICE](NOTICE).

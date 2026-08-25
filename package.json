@@ -10,7 +10,10 @@
     "start": "webpack serve --config webpack.config.js --mode development",
     "screenshots": "node scripts/screenshots.mjs",
     "check:docs-cover": "node scripts/check-docs-cover.mjs",
-    "test": "npm run check:docs-cover && node --test"
+    "test": "npm run check:docs-cover && node --test",
+    "release:check": "npm test && npm run build",
+    "preversion": "bash scripts/preversion.sh",
+    "postversion": "git push --atomic origin main v$npm_package_version"
   },
   "keywords": [],
   "author": "james.klein@salesforce.com",
