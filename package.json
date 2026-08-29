@@ -1,6 +1,6 @@
 {
   "name": "gen-p12",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "main.js",
   "engines": {
     "node": ">=22.15.0"
