@@ -12,6 +12,8 @@ const FILE_SECTION_LABELS = Object.freeze({
 });
 const CA_BUNDLE_EXTENSIONS = Object.freeze(['crt', 'key', 'txt']);
 const CA_BUNDLE_FILE_PATTERN = /^(\d{2})\.(crt|key|txt)$/;
+const ARCHIVE_DIRECTORY_PATTERN = /[\\/]$/;
+const ARCHIVE_PATH_SEPARATOR_PATTERN = /[\\/]/;
 const CA_CERTIFICATE_CANNOT_ISSUE_MESSAGE =
     'CA certificate is not permitted to issue certificates.';
 const CA_KEY_MISMATCH_MESSAGE = 'CA certificate does not match its private key.';
@@ -116,6 +118,27 @@ function createFileMap(files = []) {
     }
 
     return fileMap;
+}
+
+function normalizeArchiveEntries(files = {}) {
+    const entries = [];
+    const filenames = new Set();
+
+    for (const [archivePath, data] of Object.entries(files)) {
+        if (ARCHIVE_DIRECTORY_PATTERN.test(archivePath)) {
+            continue;
+        }
+
+        const name = archivePath.split(ARCHIVE_PATH_SEPARATOR_PATTERN).pop();
+
+        if (filenames.has(name)) {
+            throw new Error(`Archive contains multiple files named "${name}".`);
+        }
+        filenames.add(name);
+        entries.push({ data, name });
+    }
+
+    return entries;
 }
 
 function parseValidityYears(value) {
@@ -311,7 +334,15 @@ function initializeFileStatus() {
                             renderFileStatus.zipNames = [];
                             return;
                         }
-                        const zipNames = Object.keys(files);
+                        let zipNames;
+                        try {
+                            zipNames = normalizeArchiveEntries(files).map(({ name }) => name);
+                        } catch (error) {
+                            output.classList.remove('hidden');
+                            renderError(output, `Error reading zip: ${getErrorMessage(error)}`);
+                            renderFileStatus.zipNames = [];
+                            return;
+                        }
                         renderFileStatus.zipNames = zipNames;
                         logToPage('Files in uploaded zip:\n  ' + zipNames.join('\n  '));
                         updateZipFileStatus();
@@ -383,6 +414,7 @@ async function handleSubmit(e) {
         // If a zip is present, extract its files and add to fileMap
         const zipFile = Array.from(filesInput.files).find(f => f.name.endsWith('.zip'));
         if (zipFile) {
+            fileMap.delete(zipFile.name);
             output.classList.remove('hidden');
             output.textContent = 'Extracting zip...';
             let buffer;
@@ -397,8 +429,16 @@ async function handleSubmit(e) {
                         reject(new Error(`Error extracting zip: ${getErrorMessage(err)}`));
                         return;
                     }
-                    for (let [name, data] of Object.entries(files)) {
-                        fileMap.set(name, new File([data], name));
+                    try {
+                        for (const { data, name } of normalizeArchiveEntries(files)) {
+                            if (fileMap.has(name)) {
+                                throw new Error(`Uploaded files contain multiple files named "${name}".`);
+                            }
+                            fileMap.set(name, new File([data], name));
+                        }
+                    } catch (error) {
+                        reject(error);
+                        return;
                     }
                     output.textContent = 'Zip extracted successfully.';
                     resolve();
@@ -1019,6 +1059,7 @@ if (typeof module !== 'undefined' && module.exports) {
         getErrorMessage,
         getPasswordFileValue,
         isCertificateAuthority,
+        normalizeArchiveEntries,
         parseValidityYears,
         renderError,
         renderFileLists,

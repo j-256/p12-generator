@@ -18,7 +18,7 @@ Done by hand that is several `openssl` invocations in sequence, each with flags 
 
 1. Enter the instance hostname. The file checklist updates live, so a missing or misnamed file shows up before you generate anything.
 2. Set how many years the certificate should be valid for.
-3. Drop in the four files from B2C Commerce, or the zip they arrived in -- the zip is unpacked in-browser and its contents listed against the checklist.
+3. Drop in the four files from B2C Commerce, or the zip they arrived in – the zip is unpacked in-browser, an optional containing folder is flattened, and duplicate filenames are rejected rather than overwritten.
 4. Fill in the certificate subject: country, state, locality, organization, unit, email.
 5. Set the keystore export password, then generate and download.
 

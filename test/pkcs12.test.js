@@ -9,6 +9,7 @@ const {
     getCertificateValidity,
     getPasswordFileValue,
     isCertificateAuthority,
+    normalizeArchiveEntries,
     parseValidityYears,
     rsaPrivateKeyMatchesCertificate
 } = require('../main.js');
@@ -60,6 +61,33 @@ test('stores uploaded files without prototype-backed filename collisions', () =>
     assert.equal(fileMap.size, 2);
     assert.equal(fileMap.get(PROTOTYPE_COLLISION_FILENAME), prototypeNamedFile);
     assert.equal(fileMap.get(regularFile.name), regularFile);
+});
+
+test('flattens a containing directory in an uploaded certificate archive', () => {
+    const certificate = new Uint8Array([1]);
+    const key = new Uint8Array([2]);
+    const entries = normalizeArchiveEntries({
+        'certificate-bundle/': new Uint8Array(),
+        'certificate-bundle/host_01.crt': certificate,
+        'certificate-bundle\\host_01.key': key
+    });
+
+    assert.deepEqual(
+        entries.map(({ name }) => name),
+        ['host_01.crt', 'host_01.key']
+    );
+    assert.equal(entries[0].data, certificate);
+    assert.equal(entries[1].data, key);
+});
+
+test('rejects ambiguous duplicate basenames in an uploaded archive', () => {
+    assert.throws(
+        () => normalizeArchiveEntries({
+            'first/host_01.crt': new Uint8Array([1]),
+            'second/host_01.crt': new Uint8Array([2])
+        }),
+        /multiple files named "host_01\.crt"/
+    );
 });
 
 test('creates a password-protected PKCS#12 archive with its certificate chain', () => {
