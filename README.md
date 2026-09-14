@@ -52,6 +52,10 @@ The assets-only Cloudflare Worker `p12-generator` serves `p12.sfcc-test.com` and
 
 Use `npm version` as the only release entrypoint. To publish the version already declared in `package.json`, run `npm version "$(node -p 'require("./package.json").version')" --allow-same-version`; later releases use `npm version <major|minor|patch>`. Both forms run the clean-main and remote-synchronization guard, repeat the release check, create the version commit and tag, and push both refs atomically. The tag-triggered GitHub Actions workflow verifies the exact tagged static application and creates the published GitHub Release; an explicit workflow dispatch can safely retry an existing tag.
 
+## Project cover automation
+
+Run `npm run screenshots` to regenerate `docs/screenshots/cover.png` from the actual application with synthetic inputs. CI runs the capture during source verification and retains the image as an artifact. Successful default-branch verification publishes a changed cover with an image-only commit; pull requests render without publishing. Publication skips superseded source revisions so an older build cannot overwrite a newer cover.
+
 ## License and attribution
 
 Apache-2.0 -- see [LICENSE](LICENSE) and [NOTICE](NOTICE).
