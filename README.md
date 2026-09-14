@@ -42,9 +42,11 @@ npm run deploy:dry-run
 
 A single webpack bundle over a static page. There is no backend to run.
 
+The page metadata and crawler files use `https://p12.sfcc-test.com/` as the canonical URL, including when the legacy hostname serves the same application.
+
 ## Deployment
 
-The assets-only Cloudflare Worker `p12-generator` serves `p12.sfcc-test.com` and `p12.fad.bz`. `wrangler.jsonc` declares both Custom Domains and explicitly retains the Pages single-page fallback behavior. `npm run deploy:dry-run` validates the production configuration without publishing; `npm run deploy` repeats the release checks and publishes through Wrangler.
+The assets-only Cloudflare Worker `p12-generator` serves `p12.sfcc-test.com` and `p12.fad.bz`. `wrangler.jsonc` declares both Custom Domains and returns HTTP 404 for unknown paths instead of serving duplicate homepage content. `npm run deploy:dry-run` validates the production configuration without publishing; `npm run deploy` repeats the release checks and publishes through Wrangler.
 
 ## Releases
 

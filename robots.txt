@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://p12.sfcc-test.com/sitemap.xml
