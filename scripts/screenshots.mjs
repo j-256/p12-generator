@@ -3,7 +3,7 @@
 //
 // Programmatic rather than hand-captured: the page is the whole tool (no chrome
 // to crop), the filled-in state is scripted so it never drifts, and
-// deviceScaleFactor 2 keeps the form type crisp.
+// deviceScaleFactor 4 preserves detail when the form is enlarged
 //
 // The tool is a static browser app (HTML + CSS + a webpack bundle in static/).
 // The screenshot shows the form filled out and ready to generate -- it does NOT
@@ -94,7 +94,7 @@ async function main() {
     const browser = await chromium.launch();
     const context = await browser.newContext({
       viewport: VIEWPORT,
-      deviceScaleFactor: 2, // retina: keeps the form labels and inputs sharp
+      deviceScaleFactor: 4, // retina: keeps the form labels and inputs sharp
     });
     const page = await context.newPage();
 

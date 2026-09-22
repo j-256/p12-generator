@@ -63,3 +63,7 @@ Apache-2.0 -- see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 Copyright is held by Salesforce, Inc., because the tool was developed using Salesforce resources. It is **not** an official Salesforce product: not published, supported, or endorsed by Salesforce, and offered with no warranty or support commitment.
 
 Icons come from [svgrepo](https://www.svgrepo.com) (Twemoji, Flat UI, and Essential collections); see [static/icons/ATTRIBUTION.txt](static/icons/ATTRIBUTION.txt).
+
+## Cover image density
+
+The project cover is rendered at 4x pixel density while preserving its logical viewport, so enlarged previews retain more detail. Higher density does not increase the displayed text size; use zoom to inspect small labels.
