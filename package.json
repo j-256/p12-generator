@@ -23,8 +23,8 @@
   "description": "A static website which generates p12 files in the browser for code upload to Salesforce B2C Commerce Staging instances.",
   "devDependencies": {
     "playwright": "^1.63.0",
-    "wrangler": "4.131.2",
-    "webpack": "^5.111.0",
+    "wrangler": "4.136.1",
+    "webpack": "^5.111.1",
     "webpack-cli": "^7.2.3",
     "webpack-dev-server": "^6.0.0"
   },
