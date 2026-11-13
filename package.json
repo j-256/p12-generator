@@ -22,11 +22,11 @@
   "license": "Apache-2.0",
   "description": "A static website which generates p12 files in the browser for code upload to Salesforce B2C Commerce Staging instances.",
   "devDependencies": {
-    "playwright": "^1.64.1",
+    "playwright": "^1.65.0",
     "webpack": "^5.112.2",
     "webpack-cli": "^7.3.1",
     "webpack-dev-server": "^6.1.0",
-    "wrangler": "4.156.2"
+    "wrangler": "4.159.0"
   },
   "dependencies": {
     "fflate": "^0.8.3",
